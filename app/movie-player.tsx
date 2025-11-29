@@ -19,6 +19,7 @@ export default function MoviePlayerScreen() {
   const [showControls, setShowControls] = useState(true);
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [hasCheckedSubscription, setHasCheckedSubscription] = useState(false);
 
   const movie = movies.find(m => m.id === params.movieId);
 
@@ -34,17 +35,21 @@ export default function MoviePlayerScreen() {
   });
 
   useEffect(() => {
-    if (!user?.hasSubscription && !user?.isAdmin) {
-      Alert.alert(
-        'Subscription Required',
-        'You need a premium subscription to watch this content.',
-        [
-          { text: 'Cancel', onPress: () => router.back() },
-          { text: 'Subscribe', onPress: () => router.push('/subscription') },
-        ]
-      );
+    // Only check subscription for premium movies
+    if (movie?.isPremium && !hasCheckedSubscription) {
+      if (!user?.hasSubscription && !user?.isAdmin) {
+        Alert.alert(
+          'Premium Content',
+          'This movie requires a premium subscription. Music videos are free to watch!',
+          [
+            { text: 'Watch Free Videos', onPress: () => router.replace('/(tabs)/(home)') },
+            { text: 'Subscribe', onPress: () => router.push('/subscription') },
+          ]
+        );
+      }
+      setHasCheckedSubscription(true);
     }
-  }, [user]);
+  }, [movie, user, hasCheckedSubscription]);
 
   if (!movie) {
     return (
@@ -115,6 +120,16 @@ export default function MoviePlayerScreen() {
                   />
                 </TouchableOpacity>
                 <Text style={styles.videoTitle} numberOfLines={1}>{movie.title}</Text>
+                {movie.isPremium && (
+                  <View style={styles.premiumBadgeTop}>
+                    <IconSymbol 
+                      ios_icon_name="star.fill" 
+                      android_material_icon_name="star" 
+                      size={16} 
+                      color={colors.background} 
+                    />
+                  </View>
+                )}
               </View>
 
               {/* Center Controls */}
@@ -202,6 +217,17 @@ export default function MoviePlayerScreen() {
 
       {/* Movie Info */}
       <ScrollView style={styles.infoContainer} contentContainerStyle={styles.infoContent}>
+        {movie.isPremium && (
+          <View style={styles.premiumBadge}>
+            <IconSymbol 
+              ios_icon_name="star.fill" 
+              android_material_icon_name="star" 
+              size={20} 
+              color={colors.accent} 
+            />
+            <Text style={styles.premiumBadgeText}>PREMIUM CONTENT</Text>
+          </View>
+        )}
         <Text style={styles.movieTitle}>{movie.title}</Text>
         <Text style={styles.movieDescription}>{movie.description}</Text>
       </ScrollView>
@@ -246,6 +272,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: colors.text,
+  },
+  premiumBadgeTop: {
+    backgroundColor: colors.accent,
+    padding: 8,
+    borderRadius: 20,
   },
   centerControls: {
     flexDirection: 'row',
@@ -331,6 +362,24 @@ const styles = StyleSheet.create({
   infoContent: {
     padding: 20,
     paddingBottom: 120,
+  },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.card,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  premiumBadgeText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.accent,
   },
   movieTitle: {
     fontSize: 24,

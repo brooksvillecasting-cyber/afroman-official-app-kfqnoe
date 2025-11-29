@@ -37,7 +37,7 @@ export default function SubscriptionScreen() {
 
       Alert.alert(
         'Success!',
-        'Welcome to Afroman Premium! You now have unlimited access to all content.',
+        'Welcome to Afroman Premium! You now have unlimited access to all movies.',
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (error) {
@@ -74,7 +74,7 @@ export default function SubscriptionScreen() {
             color={colors.accent} 
           />
           <Text style={styles.title}>Go Premium</Text>
-          <Text style={styles.subtitle}>Unlimited access to all Afroman content</Text>
+          <Text style={styles.subtitle}>Unlock all movies - Music videos stay free!</Text>
         </View>
 
         {/* Pricing Card */}
@@ -97,7 +97,7 @@ export default function SubscriptionScreen() {
               size={24} 
               color={colors.primary} 
             />
-            <Text style={styles.featureText}>Unlimited streaming of all movies</Text>
+            <Text style={styles.featureText}>Unlimited streaming of all premium movies</Text>
           </View>
 
           <View style={styles.feature}>
@@ -107,7 +107,7 @@ export default function SubscriptionScreen() {
               size={24} 
               color={colors.primary} 
             />
-            <Text style={styles.featureText}>Early access to new releases</Text>
+            <Text style={styles.featureText}>Early access to new movie releases</Text>
           </View>
 
           <View style={styles.feature}>
@@ -117,7 +117,7 @@ export default function SubscriptionScreen() {
               size={24} 
               color={colors.primary} 
             />
-            <Text style={styles.featureText}>HD quality playback</Text>
+            <Text style={styles.featureText}>HD quality playback with speed control</Text>
           </View>
 
           <View style={styles.feature}>
@@ -148,6 +148,22 @@ export default function SubscriptionScreen() {
               color={colors.primary} 
             />
             <Text style={styles.featureText}>Cancel anytime</Text>
+          </View>
+        </View>
+
+        {/* Free Content Notice */}
+        <View style={styles.freeNotice}>
+          <IconSymbol 
+            ios_icon_name="music.note" 
+            android_material_icon_name="music_note" 
+            size={24} 
+            color={colors.accent} 
+          />
+          <View style={styles.freeNoticeContent}>
+            <Text style={styles.freeNoticeTitle}>Music Videos Are Free!</Text>
+            <Text style={styles.freeNoticeText}>
+              All music videos remain free to watch. Only movies require a subscription.
+            </Text>
           </View>
         </View>
 
@@ -240,7 +256,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   featuresContainer: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   featuresTitle: {
     fontSize: 20,
@@ -258,6 +274,30 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: colors.text,
+  },
+  freeNotice: {
+    flexDirection: 'row',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  freeNoticeContent: {
+    flex: 1,
+  },
+  freeNoticeTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.accent,
+    marginBottom: 6,
+  },
+  freeNoticeText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
   },
   subscribeButton: {
     backgroundColor: colors.primary,

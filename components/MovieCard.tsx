@@ -28,6 +28,17 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
           <Text style={styles.newBadgeText}>NEW</Text>
         </View>
       )}
+      {movie.isPremium && (
+        <View style={styles.premiumBadge}>
+          <IconSymbol 
+            ios_icon_name="star.fill" 
+            android_material_icon_name="star" 
+            size={16} 
+            color={colors.background} 
+          />
+          <Text style={styles.premiumBadgeText}>PREMIUM</Text>
+        </View>
+      )}
       <View style={styles.content}>
         <Text style={styles.title} numberOfLines={2}>{movie.title}</Text>
         <Text style={styles.description} numberOfLines={3}>{movie.description}</Text>
@@ -81,6 +92,23 @@ const styles = StyleSheet.create({
   newBadgeText: {
     color: colors.background,
     fontSize: 12,
+    fontWeight: '800',
+  },
+  premiumBadge: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    backgroundColor: colors.accent,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  premiumBadgeText: {
+    color: colors.background,
+    fontSize: 11,
     fontWeight: '800',
   },
   content: {

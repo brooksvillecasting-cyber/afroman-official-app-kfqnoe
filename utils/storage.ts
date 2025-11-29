@@ -4,6 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 const ADMIN_CREDENTIALS_KEY = 'admin_credentials';
 const USER_KEY = 'user_data';
 const MOVIES_KEY = 'movies_data';
+const MUSIC_VIDEOS_KEY = 'music_videos_data';
 const SUBSCRIPTION_KEY = 'subscription_data';
 
 // Admin credentials (in production, this would be in a secure backend)
@@ -54,6 +55,24 @@ export const getMovies = async () => {
     return moviesData ? JSON.parse(moviesData) : [];
   } catch (error) {
     console.log('Error getting movies:', error);
+    return [];
+  }
+};
+
+export const saveMusicVideos = async (musicVideos: any[]) => {
+  try {
+    await SecureStore.setItemAsync(MUSIC_VIDEOS_KEY, JSON.stringify(musicVideos));
+  } catch (error) {
+    console.log('Error saving music videos:', error);
+  }
+};
+
+export const getMusicVideos = async () => {
+  try {
+    const musicVideosData = await SecureStore.getItemAsync(MUSIC_VIDEOS_KEY);
+    return musicVideosData ? JSON.parse(musicVideosData) : [];
+  } catch (error) {
+    console.log('Error getting music videos:', error);
     return [];
   }
 };

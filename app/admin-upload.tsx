@@ -47,10 +47,11 @@ export default function AdminUploadScreen() {
         duration: parseInt(duration),
         uploadedAt: new Date(),
         isNew: true,
+        isPremium: true, // All admin uploads are premium movies
       };
 
       await addMovie(newMovie);
-      Alert.alert('Success', 'Movie uploaded successfully!', [
+      Alert.alert('Success', 'Movie uploaded successfully! This is premium content.', [
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (error) {
@@ -89,14 +90,30 @@ export default function AdminUploadScreen() {
             size={64} 
             color={colors.primary} 
           />
-          <Text style={styles.title}>Upload Content</Text>
-          <Text style={styles.subtitle}>Add new movie or project</Text>
+          <Text style={styles.title}>Upload Movie</Text>
+          <Text style={styles.subtitle}>Add new premium movie content</Text>
+        </View>
+
+        {/* Info Notice */}
+        <View style={styles.infoNotice}>
+          <IconSymbol 
+            ios_icon_name="info.circle.fill" 
+            android_material_icon_name="info" 
+            size={24} 
+            color={colors.accent} 
+          />
+          <View style={styles.infoNoticeContent}>
+            <Text style={styles.infoNoticeTitle}>Premium Content Only</Text>
+            <Text style={styles.infoNoticeText}>
+              Admin can only upload movies (premium content). Music videos are managed separately and are free.
+            </Text>
+          </View>
         </View>
 
         {/* Upload Form */}
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Title</Text>
+            <Text style={styles.label}>Movie Title</Text>
             <TextInput
               style={styles.input}
               placeholder="Enter movie title"
@@ -167,7 +184,7 @@ export default function AdminUploadScreen() {
               color={colors.background} 
             />
             <Text style={styles.uploadButtonText}>
-              {loading ? 'Uploading...' : 'Upload Movie'}
+              {loading ? 'Uploading...' : 'Upload Premium Movie'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -200,7 +217,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 24,
   },
   title: {
     fontSize: 32,
@@ -212,6 +229,30 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: colors.textSecondary,
+  },
+  infoNotice: {
+    flexDirection: 'row',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  infoNoticeContent: {
+    flex: 1,
+  },
+  infoNoticeTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.accent,
+    marginBottom: 6,
+  },
+  infoNoticeText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
   },
   form: {
     marginBottom: 32,

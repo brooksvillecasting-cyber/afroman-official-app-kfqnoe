@@ -4,13 +4,14 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } 
 import { useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { MovieCard } from '@/components/MovieCard';
+import { MusicVideoCard } from '@/components/MusicVideoCard';
 import { useMovies } from '@/hooks/useMovies';
 import { useAuth } from '@/hooks/useAuth';
 import { IconSymbol } from '@/components/IconSymbol';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { movies, loading, refreshMovies } = useMovies();
+  const { movies, musicVideos, loading, refreshMovies } = useMovies();
   const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -54,7 +55,7 @@ export default function HomeScreen() {
               />
               <View style={styles.subscriptionText}>
                 <Text style={styles.subscriptionTitle}>Get Premium Access</Text>
-                <Text style={styles.subscriptionPrice}>$19.99/month - Unlimited Content</Text>
+                <Text style={styles.subscriptionPrice}>$19.99/month - Unlock All Movies</Text>
               </View>
               <IconSymbol 
                 ios_icon_name="chevron.right" 
@@ -64,6 +65,32 @@ export default function HomeScreen() {
               />
             </View>
           </TouchableOpacity>
+        )}
+
+        {/* Free Music Videos Section */}
+        {musicVideos.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <IconSymbol 
+                ios_icon_name="music.note" 
+                android_material_icon_name="music_note" 
+                size={24} 
+                color={colors.accent} 
+              />
+              <Text style={styles.sectionTitle}>Free Music Videos</Text>
+              <View style={styles.freePill}>
+                <Text style={styles.freePillText}>FREE</Text>
+              </View>
+            </View>
+            <Text style={styles.sectionDescription}>
+              Watch all music videos for free on YouTube
+            </Text>
+            {musicVideos.map((video, index) => (
+              <React.Fragment key={video.id}>
+                <MusicVideoCard video={video} />
+              </React.Fragment>
+            ))}
+          </View>
         )}
 
         {/* New Movie Finds */}
@@ -77,6 +104,15 @@ export default function HomeScreen() {
                 color={colors.primary} 
               />
               <Text style={styles.sectionTitle}>New Movie Finds</Text>
+              <View style={styles.premiumPill}>
+                <IconSymbol 
+                  ios_icon_name="star.fill" 
+                  android_material_icon_name="star" 
+                  size={14} 
+                  color={colors.background} 
+                />
+                <Text style={styles.premiumPillText}>PREMIUM</Text>
+              </View>
             </View>
             {newMovies.map((movie, index) => (
               <React.Fragment key={movie.id}>
@@ -86,7 +122,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* All Content */}
+        {/* All Movies */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <IconSymbol 
@@ -95,7 +131,16 @@ export default function HomeScreen() {
               size={24} 
               color={colors.primary} 
             />
-            <Text style={styles.sectionTitle}>All Content</Text>
+            <Text style={styles.sectionTitle}>All Movies</Text>
+            <View style={styles.premiumPill}>
+              <IconSymbol 
+                ios_icon_name="star.fill" 
+                android_material_icon_name="star" 
+                size={14} 
+                color={colors.background} 
+              />
+              <Text style={styles.premiumPillText}>PREMIUM</Text>
+            </View>
           </View>
           {allMovies.map((movie, index) => (
             <React.Fragment key={movie.id}>
@@ -176,12 +221,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: '700',
     color: colors.text,
+  },
+  sectionDescription: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 16,
+    marginLeft: 32,
+  },
+  freePill: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginLeft: 4,
+  },
+  freePillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.background,
+  },
+  premiumPill: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginLeft: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  premiumPillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.background,
   },
   loadingContainer: {
     padding: 40,
