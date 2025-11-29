@@ -1,57 +1,130 @@
 
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
+import { useStripe, CardField } from '@stripe/stripe-react-native';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
 import { IconSymbol } from '@/components/IconSymbol';
+import { supabase } from '@/app/integrations/supabase/client';
 
-// Stripe Buy Button payment link
-const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/4gw6qg0Aw1Hy5Ow5kk';
+const SUBSCRIPTION_PRICE = 19.99;
 
 export default function SubscriptionScreen() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, login } = useAuth();
+  const { confirmPayment } = useStripe();
   const [loading, setLoading] = useState(false);
+  const [cardComplete, setCardComplete] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   const handleSubscribe = async () => {
+    if (!cardComplete) {
+      Alert.alert('Card Required', 'Please enter your card details to continue.');
+      return;
+    }
+
+    if (!user) {
+      Alert.alert('Login Required', 'Please log in to subscribe.');
+      return;
+    }
+
     setLoading(true);
+    setProcessingPayment(true);
+
     try {
-      console.log('Opening Stripe payment link:', STRIPE_PAYMENT_LINK);
-      
-      // Open Stripe payment link in browser
-      const result = await WebBrowser.openBrowserAsync(STRIPE_PAYMENT_LINK);
-      
-      console.log('Browser result:', result);
-      
-      // Note: In a production app, you would:
-      // 1. Use Stripe webhooks to verify payment completion
-      // 2. Update user subscription status in your database
-      // 3. Redirect user back to app after successful payment
-      
-      Alert.alert(
-        'Complete Your Payment',
-        'You will be redirected to Stripe to complete your $19.99 subscription payment. After successful payment, return to the app to access premium content.',
-        [
-          { 
-            text: 'OK', 
-            onPress: () => {
-              // In production, check subscription status here
-              console.log('Payment process initiated');
-            }
-          }
-        ]
+      console.log('Creating payment intent for user:', user.id || user.email);
+
+      // Call edge function to create payment intent
+      const { data: functionData, error: functionError } = await supabase.functions.invoke(
+        'create-payment-intent',
+        {
+          body: {
+            amount: SUBSCRIPTION_PRICE,
+            currency: 'usd',
+            userId: user.id || user.email,
+            email: user.email,
+          },
+        }
       );
-    } catch (error) {
-      console.log('Error opening payment link:', error);
+
+      if (functionError) {
+        console.error('Edge function error:', functionError);
+        throw new Error(functionError.message || 'Failed to create payment intent');
+      }
+
+      if (!functionData?.clientSecret) {
+        console.error('No client secret returned:', functionData);
+        throw new Error('Failed to initialize payment');
+      }
+
+      console.log('Payment intent created, confirming payment...');
+
+      // Confirm payment with Stripe
+      const { error: confirmError, paymentIntent } = await confirmPayment(
+        functionData.clientSecret,
+        {
+          paymentMethodType: 'Card',
+        }
+      );
+
+      if (confirmError) {
+        console.error('Payment confirmation error:', confirmError);
+        throw new Error(confirmError.message || 'Payment failed');
+      }
+
+      console.log('Payment confirmed:', paymentIntent?.id);
+
+      // Confirm payment on backend
+      const { data: confirmData, error: confirmBackendError } = await supabase.functions.invoke(
+        'confirm-payment',
+        {
+          body: {
+            paymentIntentId: paymentIntent?.id || functionData.paymentIntentId,
+            userId: user.id || user.email,
+          },
+        }
+      );
+
+      if (confirmBackendError) {
+        console.error('Backend confirmation error:', confirmBackendError);
+        throw new Error('Payment succeeded but subscription activation failed. Please contact support.');
+      }
+
+      if (confirmData?.success) {
+        console.log('Subscription activated successfully');
+
+        // Update user with subscription status
+        const updatedUser = {
+          ...user,
+          hasSubscription: true,
+          subscriptionExpiresAt: new Date(confirmData.expiresAt),
+        };
+        await login(updatedUser);
+
+        Alert.alert(
+          'Success! 🎉',
+          'Your subscription is now active! You can now watch all premium movies.',
+          [
+            {
+              text: 'Start Watching',
+              onPress: () => router.back(),
+            },
+          ]
+        );
+      } else {
+        throw new Error('Subscription activation failed');
+      }
+    } catch (error: any) {
+      console.error('Subscription error:', error);
       Alert.alert(
-        'Error',
-        'Failed to open payment link. Please try again.',
+        'Payment Failed',
+        error.message || 'Failed to process payment. Please try again.',
         [{ text: 'OK' }]
       );
     } finally {
       setLoading(false);
+      setProcessingPayment(false);
     }
   };
 
@@ -88,7 +161,7 @@ export default function SubscriptionScreen() {
         <View style={styles.pricingCard}>
           <View style={styles.priceContainer}>
             <Text style={styles.currency}>$</Text>
-            <Text style={styles.price}>19.99</Text>
+            <Text style={styles.price}>{SUBSCRIPTION_PRICE.toFixed(2)}</Text>
             <Text style={styles.period}>/month</Text>
           </View>
         </View>
@@ -174,21 +247,68 @@ export default function SubscriptionScreen() {
           </View>
         </View>
 
+        {/* Payment Section */}
+        <View style={styles.paymentSection}>
+          <Text style={styles.paymentTitle}>Payment Details</Text>
+          <Text style={styles.paymentSubtitle}>Enter your card information (Test Mode)</Text>
+          
+          <View style={styles.cardFieldContainer}>
+            <CardField
+              postalCodeEnabled={false}
+              placeholders={{
+                number: '4242 4242 4242 4242',
+              }}
+              cardStyle={{
+                backgroundColor: colors.card,
+                textColor: colors.text,
+                placeholderColor: colors.textSecondary,
+                borderRadius: 8,
+              }}
+              style={styles.cardField}
+              onCardChange={(cardDetails) => {
+                console.log('Card details changed:', cardDetails.complete);
+                setCardComplete(cardDetails.complete);
+              }}
+            />
+          </View>
+
+          <View style={styles.testModeNotice}>
+            <IconSymbol 
+              ios_icon_name="info.circle.fill" 
+              android_material_icon_name="info" 
+              size={20} 
+              color={colors.primary} 
+            />
+            <Text style={styles.testModeText}>
+              Test Mode: Use card 4242 4242 4242 4242 with any future date and CVC
+            </Text>
+          </View>
+        </View>
+
         {/* Subscribe Button */}
         <TouchableOpacity 
-          style={[styles.subscribeButton, loading && styles.subscribeButtonDisabled]}
+          style={[
+            styles.subscribeButton, 
+            (loading || !cardComplete) && styles.subscribeButtonDisabled
+          ]}
           onPress={handleSubscribe}
-          disabled={loading}
+          disabled={loading || !cardComplete}
         >
-          <IconSymbol 
-            ios_icon_name="creditcard.fill" 
-            android_material_icon_name="payment" 
-            size={24} 
-            color={colors.background} 
-          />
-          <Text style={styles.subscribeButtonText}>
-            {loading ? 'Opening Payment...' : 'Subscribe Now - $19.99'}
-          </Text>
+          {loading ? (
+            <ActivityIndicator color={colors.background} size="small" />
+          ) : (
+            <>
+              <IconSymbol 
+                ios_icon_name="creditcard.fill" 
+                android_material_icon_name="payment" 
+                size={24} 
+                color={colors.background} 
+              />
+              <Text style={styles.subscribeButtonText}>
+                Subscribe Now - ${SUBSCRIPTION_PRICE.toFixed(2)}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
 
         {/* Secure Payment Notice */}
@@ -200,7 +320,7 @@ export default function SubscriptionScreen() {
             color={colors.primary} 
           />
           <Text style={styles.secureNoticeText}>
-            Secure payment powered by Stripe
+            Secure payment powered by Stripe (Test Mode)
           </Text>
         </View>
 
@@ -208,9 +328,20 @@ export default function SubscriptionScreen() {
         <Text style={styles.terms}>
           By subscribing, you agree to our Terms of Service and Privacy Policy. 
           Subscription automatically renews monthly unless cancelled. 
-          You will be redirected to Stripe to complete your payment securely.
+          Your payment information is securely processed by Stripe.
         </Text>
       </ScrollView>
+
+      {/* Processing Overlay */}
+      {processingPayment && (
+        <View style={styles.processingOverlay}>
+          <View style={styles.processingCard}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.processingText}>Processing Payment...</Text>
+            <Text style={styles.processingSubtext}>Please wait, do not close the app</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -326,6 +457,46 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 20,
   },
+  paymentSection: {
+    marginBottom: 24,
+  },
+  paymentTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  paymentSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 16,
+  },
+  cardFieldContainer: {
+    backgroundColor: colors.card,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    overflow: 'hidden',
+  },
+  cardField: {
+    width: '100%',
+    height: 50,
+  },
+  testModeNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: colors.card,
+    borderRadius: 8,
+  },
+  testModeText: {
+    flex: 1,
+    fontSize: 12,
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
   subscribeButton: {
     backgroundColor: colors.primary,
     paddingVertical: 18,
@@ -337,7 +508,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   subscribeButtonDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   subscribeButtonText: {
     fontSize: 20,
@@ -361,5 +532,30 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
+  },
+  processingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  processingCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    minWidth: 280,
+  },
+  processingText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginTop: 16,
+  },
+  processingSubtext: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 8,
+    textAlign: 'center',
   },
 });

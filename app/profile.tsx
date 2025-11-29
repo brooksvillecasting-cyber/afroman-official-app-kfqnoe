@@ -1,15 +1,12 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { IconSymbol } from '@/components/IconSymbol';
-import { GlassView } from 'expo-glass-effect';
-import { useTheme } from '@react-navigation/native';
+import { colors, commonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
+import { IconSymbol } from '@/components/IconSymbol';
 
 export default function ProfileScreen() {
-  const theme = useTheme();
   const router = useRouter();
   const { user, logout, refreshSubscriptionStatus } = useAuth();
 
@@ -41,58 +38,61 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]} edges={['top']}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
+    <View style={[commonStyles.container, styles.container]}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Header */}
-        <GlassView style={styles.profileHeader} glassEffectStyle="regular">
-          <IconSymbol 
-            ios_icon_name={user?.isAdmin ? "person.badge.key.fill" : "person.circle.fill"}
-            android_material_icon_name={user?.isAdmin ? "admin_panel_settings" : "account_circle"}
-            size={80} 
-            color={theme.colors.primary} 
-          />
-          <Text style={[styles.name, { color: theme.colors.text }]}>
-            {user?.email || 'Guest'}
-          </Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.avatarContainer}>
+            <IconSymbol 
+              ios_icon_name={user?.isAdmin ? "person.badge.key.fill" : "person.circle.fill"}
+              android_material_icon_name={user?.isAdmin ? "admin_panel_settings" : "account_circle"}
+              size={80} 
+              color={colors.primary} 
+            />
+          </View>
+          <Text style={styles.name}>{user?.email || 'Guest'}</Text>
           {user?.isAdmin && (
-            <View style={[styles.adminBadge, { backgroundColor: theme.colors.primary }]}>
+            <View style={styles.adminBadge}>
               <IconSymbol 
                 ios_icon_name="star.fill" 
                 android_material_icon_name="star" 
-                size={14} 
-                color={theme.colors.background} 
+                size={16} 
+                color={colors.background} 
               />
-              <Text style={[styles.adminBadgeText, { color: theme.colors.background }]}>ADMIN</Text>
+              <Text style={styles.adminBadgeText}>ADMIN</Text>
             </View>
           )}
-        </GlassView>
+        </View>
 
         {/* Subscription Status */}
         {user && (
-          <GlassView style={styles.section} glassEffectStyle="regular">
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Subscription Status</Text>
-            <View style={styles.statusRow}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Subscription Status</Text>
+            <View style={[
+              styles.statusCard,
+              user.hasSubscription ? styles.statusCardActive : styles.statusCardInactive
+            ]}>
               <IconSymbol 
                 ios_icon_name={user.hasSubscription ? "checkmark.circle.fill" : "xmark.circle.fill"}
                 android_material_icon_name={user.hasSubscription ? "check_circle" : "cancel"}
-                size={28} 
-                color={user.hasSubscription ? theme.colors.primary : theme.dark ? '#98989D' : '#666'} 
+                size={32} 
+                color={user.hasSubscription ? colors.primary : colors.textSecondary} 
               />
               <View style={styles.statusContent}>
-                <Text style={[styles.statusTitle, { color: theme.colors.text }]}>
+                <Text style={styles.statusTitle}>
                   {user.hasSubscription ? 'Premium Active' : 'No Active Subscription'}
                 </Text>
                 {user.hasSubscription && user.subscriptionExpiresAt && (
-                  <Text style={[styles.statusSubtitle, { color: theme.dark ? '#98989D' : '#666' }]}>
+                  <Text style={styles.statusSubtitle}>
                     Expires: {new Date(user.subscriptionExpiresAt).toLocaleDateString()}
                   </Text>
                 )}
                 {!user.hasSubscription && !user.isAdmin && (
-                  <Text style={[styles.statusSubtitle, { color: theme.dark ? '#98989D' : '#666' }]}>
+                  <Text style={styles.statusSubtitle}>
                     Subscribe to unlock all premium movies
                   </Text>
                 )}
@@ -101,44 +101,40 @@ export default function ProfileScreen() {
 
             {!user.hasSubscription && !user.isAdmin && (
               <TouchableOpacity 
-                style={[styles.subscribeButton, { backgroundColor: theme.colors.primary }]}
+                style={styles.subscribeButton}
                 onPress={() => router.push('/subscription')}
               >
                 <IconSymbol 
                   ios_icon_name="star.fill" 
                   android_material_icon_name="star" 
-                  size={18} 
-                  color={theme.colors.background} 
+                  size={20} 
+                  color={colors.background} 
                 />
-                <Text style={[styles.subscribeButtonText, { color: theme.colors.background }]}>
-                  Subscribe - $19.99/month
-                </Text>
+                <Text style={styles.subscribeButtonText}>Subscribe Now - $19.99/month</Text>
               </TouchableOpacity>
             )}
 
             {user.hasSubscription && (
               <TouchableOpacity 
-                style={[styles.refreshButton, { borderColor: theme.colors.primary }]}
+                style={styles.refreshButton}
                 onPress={handleRefreshSubscription}
               >
                 <IconSymbol 
                   ios_icon_name="arrow.clockwise" 
                   android_material_icon_name="refresh" 
-                  size={18} 
-                  color={theme.colors.primary} 
+                  size={20} 
+                  color={colors.primary} 
                 />
-                <Text style={[styles.refreshButtonText, { color: theme.colors.primary }]}>
-                  Refresh Status
-                </Text>
+                <Text style={styles.refreshButtonText}>Refresh Status</Text>
               </TouchableOpacity>
             )}
-          </GlassView>
+          </View>
         )}
 
         {/* Admin Actions */}
         {user?.isAdmin && (
-          <GlassView style={styles.section} glassEffectStyle="regular">
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Admin Actions</Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Admin Actions</Text>
             <TouchableOpacity 
               style={styles.menuItem}
               onPress={() => router.push('/admin-upload')}
@@ -147,22 +143,22 @@ export default function ProfileScreen() {
                 ios_icon_name="square.and.arrow.up.fill" 
                 android_material_icon_name="upload" 
                 size={24} 
-                color={theme.colors.primary} 
+                color={colors.primary} 
               />
-              <Text style={[styles.menuItemText, { color: theme.colors.text }]}>Upload Content</Text>
+              <Text style={styles.menuItemText}>Upload Content</Text>
               <IconSymbol 
                 ios_icon_name="chevron.right" 
                 android_material_icon_name="chevron_right" 
                 size={20} 
-                color={theme.dark ? '#98989D' : '#666'} 
+                color={colors.textSecondary} 
               />
             </TouchableOpacity>
-          </GlassView>
+          </View>
         )}
 
         {/* Account Actions */}
-        <GlassView style={styles.section} glassEffectStyle="regular">
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Account</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account</Text>
           
           {!user && (
             <TouchableOpacity 
@@ -173,14 +169,14 @@ export default function ProfileScreen() {
                 ios_icon_name="person.badge.key.fill" 
                 android_material_icon_name="admin_panel_settings" 
                 size={24} 
-                color={theme.colors.primary} 
+                color={colors.primary} 
               />
-              <Text style={[styles.menuItemText, { color: theme.colors.text }]}>Admin Login</Text>
+              <Text style={styles.menuItemText}>Admin Login</Text>
               <IconSymbol 
                 ios_icon_name="chevron.right" 
                 android_material_icon_name="chevron_right" 
                 size={20} 
-                color={theme.dark ? '#98989D' : '#666'} 
+                color={colors.textSecondary} 
               />
             </TouchableOpacity>
           )}
@@ -194,78 +190,76 @@ export default function ProfileScreen() {
                 ios_icon_name="rectangle.portrait.and.arrow.right.fill" 
                 android_material_icon_name="logout" 
                 size={24} 
-                color="#FF3B30" 
+                color={colors.accent} 
               />
-              <Text style={[styles.menuItemText, { color: '#FF3B30' }]}>Logout</Text>
+              <Text style={[styles.menuItemText, { color: colors.accent }]}>Logout</Text>
               <IconSymbol 
                 ios_icon_name="chevron.right" 
                 android_material_icon_name="chevron_right" 
                 size={20} 
-                color={theme.dark ? '#98989D' : '#666'} 
+                color={colors.textSecondary} 
               />
             </TouchableOpacity>
           )}
-        </GlassView>
+        </View>
 
         {/* Test Mode Info */}
-        <GlassView style={styles.testModeCard} glassEffectStyle="regular">
+        <View style={styles.testModeCard}>
           <IconSymbol 
             ios_icon_name="exclamationmark.triangle.fill" 
             android_material_icon_name="warning" 
             size={24} 
-            color="#FF9500" 
+            color={colors.accent} 
           />
           <View style={styles.testModeContent}>
-            <Text style={[styles.testModeTitle, { color: '#FF9500' }]}>Test Mode Active</Text>
-            <Text style={[styles.testModeText, { color: theme.dark ? '#98989D' : '#666' }]}>
+            <Text style={styles.testModeTitle}>Test Mode Active</Text>
+            <Text style={styles.testModeText}>
               This app is running in Stripe test mode. Use test card 4242 4242 4242 4242 for payments.
             </Text>
           </View>
-        </GlassView>
+        </View>
 
         {/* App Info */}
         <View style={styles.appInfo}>
-          <Text style={[styles.appInfoText, { color: theme.dark ? '#98989D' : '#666' }]}>
-            Afroman Official App
-          </Text>
-          <Text style={[styles.appInfoText, { color: theme.dark ? '#98989D' : '#666' }]}>
-            Version 1.0.0
-          </Text>
-          <Text style={[styles.appInfoText, { color: theme.dark ? '#98989D' : '#666' }]}>
-            © 2024 All Rights Reserved
-          </Text>
+          <Text style={styles.appInfoText}>Afroman Official App</Text>
+          <Text style={styles.appInfoText}>Version 1.0.0</Text>
+          <Text style={styles.appInfoText}>© 2024 All Rights Reserved</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
   container: {
+    paddingTop: 48,
+  },
+  scrollView: {
     flex: 1,
   },
-  contentContainer: {
-    padding: 20,
+  scrollContent: {
+    paddingHorizontal: 24,
     paddingBottom: 120,
   },
-  profileHeader: {
+  header: {
     alignItems: 'center',
-    borderRadius: 12,
-    padding: 32,
+    marginBottom: 32,
+    paddingVertical: 24,
+  },
+  avatarContainer: {
     marginBottom: 16,
-    gap: 12,
   },
   name: {
     fontSize: 24,
     fontWeight: '800',
+    color: colors.text,
+    marginBottom: 8,
   },
   adminBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    backgroundColor: colors.accent,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -273,81 +267,104 @@ const styles = StyleSheet.create({
   adminBadgeText: {
     fontSize: 12,
     fontWeight: '800',
+    color: colors.background,
   },
   section: {
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-    gap: 12,
+    marginBottom: 32,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    marginBottom: 8,
+    color: colors.text,
+    marginBottom: 16,
   },
-  statusRow: {
+  statusCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-    marginBottom: 12,
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  statusCardActive: {
+    backgroundColor: colors.card,
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  statusCardInactive: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.textSecondary,
   },
   statusContent: {
     flex: 1,
   },
   statusTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
+    color: colors.text,
     marginBottom: 4,
   },
   statusSubtitle: {
     fontSize: 14,
+    color: colors.textSecondary,
   },
   subscribeButton: {
-    paddingVertical: 14,
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
     paddingHorizontal: 20,
-    borderRadius: 10,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginTop: 8,
   },
   subscribeButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.background,
   },
   refreshButton: {
-    paddingVertical: 12,
+    backgroundColor: colors.card,
+    paddingVertical: 14,
     paddingHorizontal: 20,
-    borderRadius: 10,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginTop: 8,
     borderWidth: 1,
+    borderColor: colors.primary,
   },
   refreshButtonText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
+    color: colors.primary,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
+    gap: 16,
+    padding: 16,
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    marginBottom: 12,
   },
   menuItemText: {
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
+    color: colors.text,
   },
   testModeCard: {
     flexDirection: 'row',
     gap: 12,
     padding: 16,
+    backgroundColor: colors.card,
     borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: colors.accent,
   },
   testModeContent: {
     flex: 1,
@@ -355,18 +372,21 @@ const styles = StyleSheet.create({
   testModeTitle: {
     fontSize: 16,
     fontWeight: '700',
+    color: colors.accent,
     marginBottom: 6,
   },
   testModeText: {
     fontSize: 14,
+    color: colors.textSecondary,
     lineHeight: 20,
   },
   appInfo: {
     alignItems: 'center',
     paddingVertical: 24,
-    gap: 4,
   },
   appInfoText: {
     fontSize: 12,
+    color: colors.textSecondary,
+    marginBottom: 4,
   },
 });

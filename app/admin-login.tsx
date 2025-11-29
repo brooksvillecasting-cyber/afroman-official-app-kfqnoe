@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
-import { validateAdminCredentials } from '@/utils/storage';
 import { useAuth } from '@/hooks/useAuth';
+import { validateAdminCredentials } from '@/utils/storage';
 import { IconSymbol } from '@/components/IconSymbol';
 
 export default function AdminLoginScreen() {
@@ -22,23 +22,45 @@ export default function AdminLoginScreen() {
 
     setLoading(true);
     try {
-      const isValid = await validateAdminCredentials(email, password);
+      const isAdmin = await validateAdminCredentials(email, password);
       
-      if (isValid) {
-        await login({
+      if (isAdmin) {
+        const adminUser = {
           id: 'admin',
           email: email,
           isAdmin: true,
-          hasSubscription: true,
-        });
-        Alert.alert('Success', 'Welcome back, Admin!');
-        router.back();
+          hasSubscription: true, // Admin has full access
+        };
+        
+        await login(adminUser);
+        
+        Alert.alert(
+          'Welcome Admin! 🎬',
+          'You have successfully logged in as administrator.',
+          [
+            {
+              text: 'Upload Content',
+              onPress: () => {
+                router.back();
+                router.push('/admin-upload');
+              },
+            },
+            {
+              text: 'Go to Home',
+              onPress: () => router.back(),
+            },
+          ]
+        );
       } else {
-        Alert.alert('Error', 'Invalid admin credentials');
+        Alert.alert(
+          'Login Failed',
+          'Invalid admin credentials. Please check your email and password.',
+          [{ text: 'OK' }]
+        );
       }
     } catch (error) {
       console.log('Login error:', error);
-      Alert.alert('Error', 'An error occurred during login');
+      Alert.alert('Error', 'An error occurred during login. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -51,30 +73,24 @@ export default function AdminLoginScreen() {
     >
       <View style={styles.content}>
         {/* Header */}
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
           <IconSymbol 
-            ios_icon_name="chevron.left" 
-            android_material_icon_name="arrow_back" 
-            size={24} 
-            color={colors.primary} 
+            ios_icon_name="xmark.circle.fill" 
+            android_material_icon_name="close" 
+            size={32} 
+            color={colors.textSecondary} 
           />
-          <Text style={styles.backButtonText}>Back</Text>
         </TouchableOpacity>
 
         <View style={styles.header}>
-          <Image 
-            source={require('@/assets/images/1e10f7f3-1517-4585-aaa3-7e62500446bb.jpeg')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
           <IconSymbol 
-            ios_icon_name="lock.shield.fill" 
+            ios_icon_name="person.badge.key.fill" 
             android_material_icon_name="admin_panel_settings" 
-            size={48} 
+            size={80} 
             color={colors.primary} 
           />
           <Text style={styles.title}>Admin Login</Text>
-          <Text style={styles.subtitle}>Enter your admin credentials</Text>
+          <Text style={styles.subtitle}>Enter your admin credentials to continue</Text>
         </View>
 
         {/* Login Form */}
@@ -84,7 +100,7 @@ export default function AdminLoginScreen() {
               ios_icon_name="envelope.fill" 
               android_material_icon_name="email" 
               size={20} 
-              color={colors.primary} 
+              color={colors.textSecondary} 
             />
             <TextInput
               style={styles.input}
@@ -94,6 +110,7 @@ export default function AdminLoginScreen() {
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
+              autoCorrect={false}
             />
           </View>
 
@@ -102,7 +119,7 @@ export default function AdminLoginScreen() {
               ios_icon_name="lock.fill" 
               android_material_icon_name="lock" 
               size={20} 
-              color={colors.primary} 
+              color={colors.textSecondary} 
             />
             <TextInput
               style={styles.input}
@@ -111,6 +128,8 @@ export default function AdminLoginScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
             />
           </View>
 
@@ -120,21 +139,34 @@ export default function AdminLoginScreen() {
             disabled={loading}
           >
             <Text style={styles.loginButtonText}>
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? 'Logging in...' : 'Login as Admin'}
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Info */}
-        <View style={styles.infoBox}>
+        <View style={styles.infoContainer}>
           <IconSymbol 
             ios_icon_name="info.circle.fill" 
             android_material_icon_name="info" 
             size={20} 
-            color={colors.accent} 
+            color={colors.primary} 
           />
           <Text style={styles.infoText}>
-            Admin access only. Contact support if you need assistance.
+            Admin access is required to upload and manage content
+          </Text>
+        </View>
+
+        {/* Test Mode Notice */}
+        <View style={styles.testModeNotice}>
+          <IconSymbol 
+            ios_icon_name="exclamationmark.triangle.fill" 
+            android_material_icon_name="warning" 
+            size={20} 
+            color={colors.accent} 
+          />
+          <Text style={styles.testModeText}>
+            App is running in test mode with Stripe test keys
           </Text>
         </View>
       </View>
@@ -148,31 +180,19 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
+    padding: 24,
   },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 32,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: colors.primary,
-    fontWeight: '600',
+  closeButton: {
+    alignSelf: 'flex-end',
+    marginBottom: 24,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
-  },
-  logo: {
-    width: 240,
-    height: 120,
-    marginBottom: 16,
+    marginBottom: 48,
   },
   title: {
     fontSize: 32,
-    fontWeight: '800',
+    fontWeight: '900',
     color: colors.text,
     marginTop: 16,
     marginBottom: 8,
@@ -180,6 +200,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: colors.textSecondary,
+    textAlign: 'center',
   },
   form: {
     marginBottom: 32,
@@ -187,24 +208,23 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
     backgroundColor: colors.card,
     borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 4,
+    paddingVertical: 16,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.primary,
+    gap: 12,
   },
   input: {
     flex: 1,
     fontSize: 16,
     color: colors.text,
-    paddingVertical: 12,
   },
   loginButton: {
     backgroundColor: colors.primary,
-    paddingVertical: 16,
+    paddingVertical: 18,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,
@@ -214,22 +234,39 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: colors.background,
   },
-  infoBox: {
+  infoContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
-    backgroundColor: colors.card,
     padding: 16,
+    backgroundColor: colors.card,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.accent,
+    marginBottom: 16,
   },
   infoText: {
     flex: 1,
     fontSize: 14,
     color: colors.textSecondary,
     lineHeight: 20,
+  },
+  testModeNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 16,
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  testModeText: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.accent,
+    lineHeight: 20,
+    fontWeight: '600',
   },
 });

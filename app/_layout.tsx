@@ -1,64 +1,94 @@
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
-import { useFonts } from 'expo-font';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StripeProvider } from '@stripe/stripe-react-native';
 import * as SplashScreen from 'expo-splash-screen';
-import { colors } from '@/styles/commonStyles';
 
+// Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
+// Stripe publishable key (test mode)
+const STRIPE_PUBLISHABLE_KEY = 'pk_test_51SHylYRqxjczpVGKlCQo5vvp21r5c357TtOiVASvqwT5YnuxPWEwKb6qmKJiaZkhLAMWJXWq7iEaZnl9pt6c0Cxx00zEqORvoi';
+
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
   useEffect(() => {
-    if (loaded || error) {
+    // Hide splash screen after a short delay
+    setTimeout(() => {
       SplashScreen.hideAsync();
-    }
-  }, [loaded, error]);
-
-  if (!loaded && !error) {
-    return null;
-  }
+    }, 1000);
+  }, []);
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.background },
-        animation: 'slide_from_right',
-      }}
-    >
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen 
-        name="admin-login" 
-        options={{ 
-          presentation: 'modal',
-          animation: 'slide_from_bottom',
-        }} 
-      />
-      <Stack.Screen 
-        name="admin-upload" 
-        options={{ 
-          presentation: 'modal',
-          animation: 'slide_from_bottom',
-        }} 
-      />
-      <Stack.Screen 
-        name="subscription" 
-        options={{ 
-          presentation: 'modal',
-          animation: 'slide_from_bottom',
-        }} 
-      />
-      <Stack.Screen 
-        name="movie-player" 
-        options={{ 
-          presentation: 'fullScreenModal',
-          animation: 'fade',
-        }} 
-      />
-    </Stack>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <StripeProvider
+        publishableKey={STRIPE_PUBLISHABLE_KEY}
+        merchantIdentifier="merchant.com.afroman.app"
+      >
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen 
+            name="modal" 
+            options={{ 
+              presentation: 'modal',
+              animation: 'slide_from_bottom',
+            }} 
+          />
+          <Stack.Screen 
+            name="formsheet" 
+            options={{ 
+              presentation: 'formSheet',
+              animation: 'slide_from_bottom',
+            }} 
+          />
+          <Stack.Screen 
+            name="transparent-modal" 
+            options={{ 
+              presentation: 'transparentModal',
+              animation: 'fade',
+            }} 
+          />
+          <Stack.Screen 
+            name="admin-login" 
+            options={{ 
+              presentation: 'modal',
+              animation: 'slide_from_bottom',
+            }} 
+          />
+          <Stack.Screen 
+            name="admin-upload" 
+            options={{ 
+              headerShown: false,
+            }} 
+          />
+          <Stack.Screen 
+            name="movie-player" 
+            options={{ 
+              headerShown: false,
+              animation: 'slide_from_bottom',
+            }} 
+          />
+          <Stack.Screen 
+            name="youtube-player" 
+            options={{ 
+              headerShown: false,
+              animation: 'slide_from_bottom',
+            }} 
+          />
+          <Stack.Screen 
+            name="subscription" 
+            options={{ 
+              headerShown: false,
+              animation: 'slide_from_bottom',
+            }} 
+          />
+        </Stack>
+      </StripeProvider>
+    </GestureHandlerRootView>
   );
 }
