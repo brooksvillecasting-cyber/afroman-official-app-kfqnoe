@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { validateAdminCredentials } from '@/utils/storage';
@@ -62,10 +62,15 @@ export default function AdminLoginScreen() {
         </TouchableOpacity>
 
         <View style={styles.header}>
+          <Image 
+            source={require('@/assets/images/1e10f7f3-1517-4585-aaa3-7e62500446bb.jpeg')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <IconSymbol 
             ios_icon_name="lock.shield.fill" 
             android_material_icon_name="admin_panel_settings" 
-            size={64} 
+            size={48} 
             color={colors.primary} 
           />
           <Text style={styles.title}>Admin Login</Text>
@@ -161,6 +166,11 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 40,
+  },
+  logo: {
+    width: 240,
+    height: 120,
+    marginBottom: 16,
   },
   title: {
     fontSize: 32,

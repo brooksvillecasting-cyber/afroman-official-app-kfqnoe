@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { MovieCard } from '@/components/MovieCard';
@@ -34,9 +34,13 @@ export default function HomeScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
         }
       >
-        {/* Header */}
+        {/* Header with Logo */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>AFROMAN</Text>
+          <Image 
+            source={require('@/assets/images/1e10f7f3-1517-4585-aaa3-7e62500446bb.jpeg')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.headerSubtitle}>Official Content</Text>
         </View>
 
@@ -175,11 +179,10 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingVertical: 20,
   },
-  headerTitle: {
-    fontSize: 36,
-    fontWeight: '900',
-    color: colors.primary,
-    letterSpacing: 2,
+  logo: {
+    width: 280,
+    height: 140,
+    marginBottom: 8,
   },
   headerSubtitle: {
     fontSize: 14,
