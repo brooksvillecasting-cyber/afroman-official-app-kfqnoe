@@ -58,6 +58,17 @@ export const useMovies = () => {
             isNew: false,
             isPremium: true,
           },
+          {
+            id: '4',
+            title: 'Premium Exclusive Content',
+            description: 'Exclusive premium content available only to subscribers. Get access to behind-the-scenes footage and exclusive interviews.',
+            videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+            thumbnailUrl: 'https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?w=800',
+            duration: 300,
+            uploadedAt: new Date(),
+            isNew: true,
+            isPremium: true,
+          },
         ];
         await saveMovies(sampleMovies);
         setMovies(sampleMovies);
@@ -66,7 +77,7 @@ export const useMovies = () => {
       }
 
       if (musicVideosData.length === 0) {
-        // Initialize with sample music videos (free content) - using official YouTube thumbnails
+        // Initialize with only "Because I Got High" music video (free content)
         const sampleMusicVideos: MusicVideo[] = [
           {
             id: 'mv1',
@@ -75,24 +86,6 @@ export const useMovies = () => {
             youtubeId: 'WeYsTmIzjkw',
             thumbnailUrl: getYouTubeThumbnail('WeYsTmIzjkw'),
             duration: 195,
-            addedAt: new Date(),
-          },
-          {
-            id: 'mv2',
-            title: 'Crazy Rap',
-            artist: 'Afroman',
-            youtubeId: 'WXzFCS72QIA',
-            thumbnailUrl: getYouTubeThumbnail('WXzFCS72QIA'),
-            duration: 240,
-            addedAt: new Date(),
-          },
-          {
-            id: 'mv3',
-            title: 'Palmdale',
-            artist: 'Afroman',
-            youtubeId: 'YvPHKVeWlLU',
-            thumbnailUrl: getYouTubeThumbnail('YvPHKVeWlLU'),
-            duration: 210,
             addedAt: new Date(),
           },
         ];

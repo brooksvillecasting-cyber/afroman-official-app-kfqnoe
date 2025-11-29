@@ -71,7 +71,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Free Music Videos Section */}
+        {/* Free Music Video Section - Only "Because I Got High" */}
         {musicVideos.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -81,13 +81,13 @@ export default function HomeScreen() {
                 size={24} 
                 color={colors.accent} 
               />
-              <Text style={styles.sectionTitle}>Free Music Videos</Text>
+              <Text style={styles.sectionTitle}>Free Music Video</Text>
               <View style={styles.freePill}>
                 <Text style={styles.freePillText}>FREE</Text>
               </View>
             </View>
             <Text style={styles.sectionDescription}>
-              Watch all music videos for free on YouTube
+              Watch the Grammy-nominated hit for free on YouTube
             </Text>
             {musicVideos.map((video, index) => (
               <React.Fragment key={video.id}>
@@ -97,36 +97,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* New Movie Finds */}
-        {newMovies.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <IconSymbol 
-                ios_icon_name="sparkles" 
-                android_material_icon_name="auto_awesome" 
-                size={24} 
-                color={colors.primary} 
-              />
-              <Text style={styles.sectionTitle}>New Movie Finds</Text>
-              <View style={styles.premiumPill}>
-                <IconSymbol 
-                  ios_icon_name="star.fill" 
-                  android_material_icon_name="star" 
-                  size={14} 
-                  color={colors.background} 
-                />
-                <Text style={styles.premiumPillText}>PREMIUM</Text>
-              </View>
-            </View>
-            {newMovies.map((movie, index) => (
-              <React.Fragment key={movie.id}>
-                <MovieCard movie={movie} />
-              </React.Fragment>
-            ))}
-          </View>
-        )}
-
-        {/* All Movies */}
+        {/* Premium Movies Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <IconSymbol 
@@ -135,7 +106,7 @@ export default function HomeScreen() {
               size={24} 
               color={colors.primary} 
             />
-            <Text style={styles.sectionTitle}>All Movies</Text>
+            <Text style={styles.sectionTitle}>Premium Movies</Text>
             <View style={styles.premiumPill}>
               <IconSymbol 
                 ios_icon_name="star.fill" 
@@ -146,6 +117,9 @@ export default function HomeScreen() {
               <Text style={styles.premiumPillText}>PREMIUM</Text>
             </View>
           </View>
+          <Text style={styles.sectionDescription}>
+            Subscribe for $19.99/month to unlock all premium content
+          </Text>
           {allMovies.map((movie, index) => (
             <React.Fragment key={movie.id}>
               <MovieCard movie={movie} />

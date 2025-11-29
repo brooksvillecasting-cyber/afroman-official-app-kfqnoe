@@ -1,48 +1,56 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
-import { saveSubscription } from '@/utils/storage';
 import { IconSymbol } from '@/components/IconSymbol';
+
+// Stripe payment link for $19.99 subscription
+// Replace this with your actual Stripe payment link
+const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/test_00000000000000000000';
 
 export default function SubscriptionScreen() {
   const router = useRouter();
-  const { user, login } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const handleSubscribe = async () => {
     setLoading(true);
     try {
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      const subscriptionData = {
-        active: true,
-        price: 19.99,
-        startDate: new Date(),
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-      };
-
-      await saveSubscription(subscriptionData);
-
-      if (user) {
-        await login({
-          ...user,
-          hasSubscription: true,
-          subscriptionExpiresAt: subscriptionData.expiresAt,
-        });
-      }
-
+      console.log('Opening Stripe payment link:', STRIPE_PAYMENT_LINK);
+      
+      // Open Stripe payment link in browser
+      const result = await WebBrowser.openBrowserAsync(STRIPE_PAYMENT_LINK);
+      
+      console.log('Browser result:', result);
+      
+      // Note: In a production app, you would:
+      // 1. Use Stripe webhooks to verify payment completion
+      // 2. Update user subscription status in your database
+      // 3. Redirect user back to app after successful payment
+      
       Alert.alert(
-        'Success!',
-        'Welcome to Afroman Premium! You now have unlimited access to all movies.',
-        [{ text: 'OK', onPress: () => router.back() }]
+        'Payment Link Opened',
+        'Complete your payment in the browser. After successful payment, your subscription will be activated.',
+        [
+          { 
+            text: 'OK', 
+            onPress: () => {
+              // In production, check subscription status here
+              router.back();
+            }
+          }
+        ]
       );
     } catch (error) {
-      console.log('Subscription error:', error);
-      Alert.alert('Error', 'Failed to process subscription');
+      console.log('Error opening payment link:', error);
+      Alert.alert(
+        'Error',
+        'Failed to open payment link. Please try again.',
+        [{ text: 'OK' }]
+      );
     } finally {
       setLoading(false);
     }
@@ -173,15 +181,35 @@ export default function SubscriptionScreen() {
           onPress={handleSubscribe}
           disabled={loading}
         >
+          <IconSymbol 
+            ios_icon_name="creditcard.fill" 
+            android_material_icon_name="payment" 
+            size={24} 
+            color={colors.background} 
+          />
           <Text style={styles.subscribeButtonText}>
-            {loading ? 'Processing...' : 'Subscribe Now'}
+            {loading ? 'Opening Payment...' : 'Subscribe Now - $19.99'}
           </Text>
         </TouchableOpacity>
+
+        {/* Secure Payment Notice */}
+        <View style={styles.secureNotice}>
+          <IconSymbol 
+            ios_icon_name="lock.shield.fill" 
+            android_material_icon_name="verified_user" 
+            size={20} 
+            color={colors.primary} 
+          />
+          <Text style={styles.secureNoticeText}>
+            Secure payment powered by Stripe
+          </Text>
+        </View>
 
         {/* Terms */}
         <Text style={styles.terms}>
           By subscribing, you agree to our Terms of Service and Privacy Policy. 
-          Subscription automatically renews monthly unless cancelled.
+          Subscription automatically renews monthly unless cancelled. 
+          You will be redirected to Stripe to complete your payment securely.
         </Text>
       </ScrollView>
     </View>
@@ -304,7 +332,10 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
   },
   subscribeButtonDisabled: {
     opacity: 0.6,
@@ -313,6 +344,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '800',
     color: colors.background,
+  },
+  secureNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 24,
+  },
+  secureNoticeText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: '600',
   },
   terms: {
     fontSize: 12,
