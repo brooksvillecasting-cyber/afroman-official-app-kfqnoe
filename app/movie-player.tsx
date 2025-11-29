@@ -21,7 +21,11 @@ export default function MoviePlayerScreen() {
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [hasCheckedSubscription, setHasCheckedSubscription] = useState(false);
 
+  console.log('Movie Player - Received movieId:', params.movieId);
+
   const movie = movies.find(m => m.id === params.movieId);
+
+  console.log('Movie Player - Found movie:', movie);
 
   const player = useVideoPlayer(movie?.videoUrl || '', player => {
     player.loop = false;
@@ -54,10 +58,21 @@ export default function MoviePlayerScreen() {
   if (!movie) {
     return (
       <View style={[commonStyles.container, styles.container]}>
-        <Text style={styles.errorText}>Movie not found</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
-        </TouchableOpacity>
+        <View style={styles.errorContainer}>
+          <IconSymbol 
+            ios_icon_name="exclamationmark.triangle.fill" 
+            android_material_icon_name="error" 
+            size={64} 
+            color={colors.accent} 
+          />
+          <Text style={styles.errorText}>Movie not found</Text>
+          <Text style={styles.errorSubtext}>
+            The requested movie could not be loaded.
+          </Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Text style={styles.backButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -74,20 +89,26 @@ export default function MoviePlayerScreen() {
     player.playbackRate = speed;
     setPlaybackSpeed(speed);
     setShowSpeedMenu(false);
+    console.log('Playback speed changed to:', speed);
   };
 
   const formatTime = (seconds: number) => {
+    if (!seconds || isNaN(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const seekForward = () => {
-    player.currentTime = Math.min(player.currentTime + 10, player.duration);
+    const newTime = Math.min(player.currentTime + 10, player.duration);
+    player.currentTime = newTime;
+    console.log('Seeked forward to:', newTime);
   };
 
   const seekBackward = () => {
-    player.currentTime = Math.max(player.currentTime - 10, 0);
+    const newTime = Math.max(player.currentTime - 10, 0);
+    player.currentTime = newTime;
+    console.log('Seeked backward to:', newTime);
   };
 
   return (
@@ -392,11 +413,25 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 24,
   },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
   errorText: {
-    fontSize: 18,
+    fontSize: 24,
+    fontWeight: '700',
     color: colors.text,
     textAlign: 'center',
-    marginBottom: 20,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  errorSubtext: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
   },
   backButton: {
     backgroundColor: colors.primary,

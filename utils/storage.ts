@@ -12,14 +12,21 @@ const ADMIN_EMAIL = 'admin@afroman.com';
 const ADMIN_PASSWORD = 'afroman2024';
 
 export const validateAdminCredentials = async (email: string, password: string): Promise<boolean> => {
-  return email === ADMIN_EMAIL && password === ADMIN_PASSWORD;
+  try {
+    return email === ADMIN_EMAIL && password === ADMIN_PASSWORD;
+  } catch (error) {
+    console.log('Error validating admin credentials:', error);
+    return false;
+  }
 };
 
 export const saveUser = async (user: any) => {
   try {
     await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+    console.log('User saved successfully');
   } catch (error) {
     console.log('Error saving user:', error);
+    throw error;
   }
 };
 
@@ -36,16 +43,20 @@ export const getUser = async () => {
 export const clearUser = async () => {
   try {
     await SecureStore.deleteItemAsync(USER_KEY);
+    console.log('User cleared successfully');
   } catch (error) {
     console.log('Error clearing user:', error);
+    throw error;
   }
 };
 
 export const saveMovies = async (movies: any[]) => {
   try {
     await SecureStore.setItemAsync(MOVIES_KEY, JSON.stringify(movies));
+    console.log('Movies saved successfully:', movies.length);
   } catch (error) {
     console.log('Error saving movies:', error);
+    throw error;
   }
 };
 
@@ -62,8 +73,10 @@ export const getMovies = async () => {
 export const saveMusicVideos = async (musicVideos: any[]) => {
   try {
     await SecureStore.setItemAsync(MUSIC_VIDEOS_KEY, JSON.stringify(musicVideos));
+    console.log('Music videos saved successfully:', musicVideos.length);
   } catch (error) {
     console.log('Error saving music videos:', error);
+    throw error;
   }
 };
 
@@ -80,8 +93,10 @@ export const getMusicVideos = async () => {
 export const saveSubscription = async (subscription: any) => {
   try {
     await SecureStore.setItemAsync(SUBSCRIPTION_KEY, JSON.stringify(subscription));
+    console.log('Subscription saved successfully');
   } catch (error) {
     console.log('Error saving subscription:', error);
+    throw error;
   }
 };
 

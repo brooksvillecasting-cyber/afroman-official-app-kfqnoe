@@ -10,19 +10,40 @@ interface MusicVideoCardProps {
   video: MusicVideo;
 }
 
+// Helper function to get YouTube thumbnail URL
+const getYouTubeThumbnail = (youtubeId: string, quality: 'default' | 'hq' | 'mq' | 'sd' | 'maxres' = 'maxres'): string => {
+  const qualityMap = {
+    'default': 'default.jpg',
+    'mq': 'mqdefault.jpg',
+    'hq': 'hqdefault.jpg',
+    'sd': 'sddefault.jpg',
+    'maxres': 'maxresdefault.jpg'
+  };
+  
+  return `https://img.youtube.com/vi/${youtubeId}/${qualityMap[quality]}`;
+};
+
 export const MusicVideoCard: React.FC<MusicVideoCardProps> = ({ video }) => {
   const router = useRouter();
 
   const handlePress = () => {
+    console.log('Opening YouTube video:', video.youtubeId);
     router.push({
       pathname: '/youtube-player',
-      params: { videoId: video.id },
+      params: { videoId: video.youtubeId },
     });
   };
 
+  // Get official YouTube thumbnail
+  const thumbnailUrl = getYouTubeThumbnail(video.youtubeId, 'maxres');
+
   return (
     <TouchableOpacity style={styles.card} onPress={handlePress}>
-      <Image source={{ uri: video.thumbnailUrl }} style={styles.thumbnail} />
+      <Image 
+        source={{ uri: thumbnailUrl }} 
+        style={styles.thumbnail}
+        defaultSource={require('@/assets/images/final_quest_240x240.png')}
+      />
       <View style={styles.freeBadge}>
         <Text style={styles.freeBadgeText}>FREE</Text>
       </View>

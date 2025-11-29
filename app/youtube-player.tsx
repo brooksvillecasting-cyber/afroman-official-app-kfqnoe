@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Linking } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import { colors, commonStyles } from '@/styles/commonStyles';
@@ -15,20 +15,50 @@ export default function YouTubePlayerScreen() {
   const { musicVideos } = useMovies();
   const [loading, setLoading] = useState(true);
 
-  const video = musicVideos.find(v => v.id === params.videoId);
+  console.log('YouTube Player - Received videoId:', params.videoId);
+
+  // Find video by youtubeId (not by id)
+  const video = musicVideos.find(v => v.youtubeId === params.videoId);
+
+  console.log('YouTube Player - Found video:', video);
 
   if (!video) {
     return (
       <View style={[commonStyles.container, styles.container]}>
-        <Text style={styles.errorText}>Video not found</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
-        </TouchableOpacity>
+        <View style={styles.errorContainer}>
+          <IconSymbol 
+            ios_icon_name="exclamationmark.triangle.fill" 
+            android_material_icon_name="error" 
+            size={64} 
+            color={colors.accent} 
+          />
+          <Text style={styles.errorText}>Video not found</Text>
+          <Text style={styles.errorSubtext}>
+            The requested video could not be loaded.
+          </Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Text style={styles.backButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
 
   const youtubeEmbedUrl = `https://www.youtube.com/embed/${video.youtubeId}?autoplay=1&rel=0&modestbranding=1`;
+  const youtubeAppUrl = `https://www.youtube.com/watch?v=${video.youtubeId}`;
+
+  const handleOpenInYouTube = async () => {
+    try {
+      const supported = await Linking.canOpenURL(youtubeAppUrl);
+      if (supported) {
+        await Linking.openURL(youtubeAppUrl);
+      } else {
+        console.log('Cannot open YouTube URL');
+      }
+    } catch (error) {
+      console.log('Error opening YouTube:', error);
+    }
+  };
 
   return (
     <View style={[commonStyles.container, styles.container]}>
@@ -44,6 +74,10 @@ export default function YouTubePlayerScreen() {
           domStorageEnabled
           onLoadStart={() => setLoading(true)}
           onLoadEnd={() => setLoading(false)}
+          onError={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            console.log('WebView error:', nativeEvent);
+          }}
         />
         {loading && (
           <View style={styles.loadingOverlay}>
@@ -115,7 +149,7 @@ export default function YouTubePlayerScreen() {
 
         <TouchableOpacity 
           style={styles.youtubeButton}
-          onPress={() => console.log('Open in YouTube app')}
+          onPress={handleOpenInYouTube}
         >
           <IconSymbol 
             ios_icon_name="play.rectangle.fill" 
@@ -258,11 +292,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
   errorText: {
-    fontSize: 18,
+    fontSize: 24,
+    fontWeight: '700',
     color: colors.text,
     textAlign: 'center',
-    marginBottom: 20,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  errorSubtext: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
   },
   backButton: {
     backgroundColor: colors.primary,

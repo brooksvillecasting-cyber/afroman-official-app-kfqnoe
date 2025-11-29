@@ -3,6 +3,11 @@ import { useState, useEffect } from 'react';
 import { getMovies, saveMovies, getMusicVideos, saveMusicVideos } from '@/utils/storage';
 import { Movie, MusicVideo } from '@/types/Movie';
 
+// Helper function to get YouTube thumbnail URL
+const getYouTubeThumbnail = (youtubeId: string): string => {
+  return `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
+};
+
 export const useMovies = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [musicVideos, setMusicVideos] = useState<MusicVideo[]>([]);
@@ -61,14 +66,14 @@ export const useMovies = () => {
       }
 
       if (musicVideosData.length === 0) {
-        // Initialize with sample music videos (free content)
+        // Initialize with sample music videos (free content) - using official YouTube thumbnails
         const sampleMusicVideos: MusicVideo[] = [
           {
             id: 'mv1',
             title: 'Because I Got High',
             artist: 'Afroman',
             youtubeId: 'WeYsTmIzjkw',
-            thumbnailUrl: 'https://img.youtube.com/vi/WeYsTmIzjkw/maxresdefault.jpg',
+            thumbnailUrl: getYouTubeThumbnail('WeYsTmIzjkw'),
             duration: 195,
             addedAt: new Date(),
           },
@@ -77,7 +82,7 @@ export const useMovies = () => {
             title: 'Crazy Rap',
             artist: 'Afroman',
             youtubeId: 'WXzFCS72QIA',
-            thumbnailUrl: 'https://img.youtube.com/vi/WXzFCS72QIA/maxresdefault.jpg',
+            thumbnailUrl: getYouTubeThumbnail('WXzFCS72QIA'),
             duration: 240,
             addedAt: new Date(),
           },
@@ -86,7 +91,7 @@ export const useMovies = () => {
             title: 'Palmdale',
             artist: 'Afroman',
             youtubeId: 'YvPHKVeWlLU',
-            thumbnailUrl: 'https://img.youtube.com/vi/YvPHKVeWlLU/maxresdefault.jpg',
+            thumbnailUrl: getYouTubeThumbnail('YvPHKVeWlLU'),
             duration: 210,
             addedAt: new Date(),
           },
@@ -104,27 +109,56 @@ export const useMovies = () => {
   };
 
   const addMovie = async (movie: Movie) => {
-    const updatedMovies = [...movies, movie];
-    await saveMovies(updatedMovies);
-    setMovies(updatedMovies);
+    try {
+      const updatedMovies = [...movies, movie];
+      await saveMovies(updatedMovies);
+      setMovies(updatedMovies);
+      console.log('Movie added successfully:', movie.title);
+    } catch (error) {
+      console.log('Error adding movie:', error);
+      throw error;
+    }
   };
 
   const deleteMovie = async (movieId: string) => {
-    const updatedMovies = movies.filter(m => m.id !== movieId);
-    await saveMovies(updatedMovies);
-    setMovies(updatedMovies);
+    try {
+      const updatedMovies = movies.filter(m => m.id !== movieId);
+      await saveMovies(updatedMovies);
+      setMovies(updatedMovies);
+      console.log('Movie deleted successfully:', movieId);
+    } catch (error) {
+      console.log('Error deleting movie:', error);
+      throw error;
+    }
   };
 
   const addMusicVideo = async (musicVideo: MusicVideo) => {
-    const updatedMusicVideos = [...musicVideos, musicVideo];
-    await saveMusicVideos(updatedMusicVideos);
-    setMusicVideos(updatedMusicVideos);
+    try {
+      // Ensure thumbnail URL is set from YouTube
+      const videoWithThumbnail = {
+        ...musicVideo,
+        thumbnailUrl: getYouTubeThumbnail(musicVideo.youtubeId),
+      };
+      const updatedMusicVideos = [...musicVideos, videoWithThumbnail];
+      await saveMusicVideos(updatedMusicVideos);
+      setMusicVideos(updatedMusicVideos);
+      console.log('Music video added successfully:', musicVideo.title);
+    } catch (error) {
+      console.log('Error adding music video:', error);
+      throw error;
+    }
   };
 
   const deleteMusicVideo = async (videoId: string) => {
-    const updatedMusicVideos = musicVideos.filter(v => v.id !== videoId);
-    await saveMusicVideos(updatedMusicVideos);
-    setMusicVideos(updatedMusicVideos);
+    try {
+      const updatedMusicVideos = musicVideos.filter(v => v.id !== videoId);
+      await saveMusicVideos(updatedMusicVideos);
+      setMusicVideos(updatedMusicVideos);
+      console.log('Music video deleted successfully:', videoId);
+    } catch (error) {
+      console.log('Error deleting music video:', error);
+      throw error;
+    }
   };
 
   return { 
