@@ -8,8 +8,8 @@ const MUSIC_VIDEOS_KEY = 'music_videos_data';
 const SUBSCRIPTION_KEY = 'subscription_data';
 
 // Admin credentials (in production, this would be in a secure backend)
-const ADMIN_EMAIL = 'admin@afroman.com';
-const ADMIN_PASSWORD = 'afroman2024';
+const ADMIN_EMAIL = 'hungry.hustler@yahoo.com';
+const ADMIN_PASSWORD = 'Afroman_420';
 
 export const validateAdminCredentials = async (email: string, password: string): Promise<boolean> => {
   try {

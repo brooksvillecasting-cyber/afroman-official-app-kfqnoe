@@ -134,9 +134,7 @@ export default function AdminLoginScreen() {
             color={colors.accent} 
           />
           <Text style={styles.infoText}>
-            Demo credentials:{'\n'}
-            Email: admin@afroman.com{'\n'}
-            Password: afroman2024
+            Admin access only. Contact support if you need assistance.
           </Text>
         </View>
       </View>

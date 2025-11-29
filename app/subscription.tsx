@@ -1,15 +1,14 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useAuth } from '@/hooks/useAuth';
 import { IconSymbol } from '@/components/IconSymbol';
 
-// Stripe payment link for $19.99 subscription
-// Replace this with your actual Stripe payment link
-const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/test_00000000000000000000';
+// Stripe Buy Button payment link
+const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/4gw6qg0Aw1Hy5Ow5kk';
 
 export default function SubscriptionScreen() {
   const router = useRouter();
@@ -32,14 +31,14 @@ export default function SubscriptionScreen() {
       // 3. Redirect user back to app after successful payment
       
       Alert.alert(
-        'Payment Link Opened',
-        'Complete your payment in the browser. After successful payment, your subscription will be activated.',
+        'Complete Your Payment',
+        'You will be redirected to Stripe to complete your $19.99 subscription payment. After successful payment, return to the app to access premium content.',
         [
           { 
             text: 'OK', 
             onPress: () => {
               // In production, check subscription status here
-              router.back();
+              console.log('Payment process initiated');
             }
           }
         ]

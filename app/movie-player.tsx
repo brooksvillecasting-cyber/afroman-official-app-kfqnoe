@@ -19,41 +19,75 @@ export default function MoviePlayerScreen() {
   const [showControls, setShowControls] = useState(true);
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
-  const [hasCheckedSubscription, setHasCheckedSubscription] = useState(false);
+  const [canPlayContent, setCanPlayContent] = useState(false);
 
   console.log('Movie Player - Received movieId:', params.movieId);
 
   const movie = movies.find(m => m.id === params.movieId);
 
   console.log('Movie Player - Found movie:', movie);
+  console.log('Movie Player - User subscription status:', user?.hasSubscription);
+  console.log('Movie Player - User is admin:', user?.isAdmin);
 
-  const player = useVideoPlayer(movie?.videoUrl || '', player => {
-    player.loop = false;
-    player.play();
-  });
+  // Check if user can play this content
+  useEffect(() => {
+    if (!movie) {
+      console.log('Movie Player - No movie found');
+      return;
+    }
+
+    // Premium movies require subscription or admin access
+    if (movie.isPremium) {
+      const hasAccess = user?.hasSubscription || user?.isAdmin;
+      console.log('Movie Player - Premium content, has access:', hasAccess);
+      
+      if (!hasAccess) {
+        // Block access to premium content
+        setCanPlayContent(false);
+        Alert.alert(
+          'Premium Content Locked',
+          'This movie requires a premium subscription. Please subscribe to watch premium content. Music videos are always free!',
+          [
+            { 
+              text: 'Go Back', 
+              style: 'cancel',
+              onPress: () => router.back()
+            },
+            { 
+              text: 'Subscribe Now', 
+              onPress: () => {
+                router.back();
+                router.push('/subscription');
+              }
+            },
+          ],
+          { cancelable: false }
+        );
+      } else {
+        setCanPlayContent(true);
+      }
+    } else {
+      // Free content (music videos) can always be played
+      console.log('Movie Player - Free content, allowing playback');
+      setCanPlayContent(true);
+    }
+  }, [movie, user]);
+
+  const player = useVideoPlayer(
+    (movie && canPlayContent) ? movie.videoUrl : '', 
+    player => {
+      if (canPlayContent) {
+        player.loop = false;
+        player.play();
+      }
+    }
+  );
 
   const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
   const { currentTime, duration } = useEvent(player, 'timeUpdate', {
     currentTime: player.currentTime,
     duration: player.duration,
   });
-
-  useEffect(() => {
-    // Only check subscription for premium movies
-    if (movie?.isPremium && !hasCheckedSubscription) {
-      if (!user?.hasSubscription && !user?.isAdmin) {
-        Alert.alert(
-          'Premium Content',
-          'This movie requires a premium subscription. Music videos are free to watch!',
-          [
-            { text: 'Watch Free Videos', onPress: () => router.replace('/(tabs)/(home)') },
-            { text: 'Subscribe', onPress: () => router.push('/subscription') },
-          ]
-        );
-      }
-      setHasCheckedSubscription(true);
-    }
-  }, [movie, user, hasCheckedSubscription]);
 
   if (!movie) {
     return (
@@ -71,6 +105,76 @@ export default function MoviePlayerScreen() {
           </Text>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <Text style={styles.backButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // Show locked screen for premium content without subscription
+  if (movie.isPremium && !canPlayContent) {
+    return (
+      <View style={[commonStyles.container, styles.container]}>
+        <View style={styles.lockedContainer}>
+          <IconSymbol 
+            ios_icon_name="lock.fill" 
+            android_material_icon_name="lock" 
+            size={80} 
+            color={colors.accent} 
+          />
+          <Text style={styles.lockedTitle}>Premium Content Locked</Text>
+          <Text style={styles.lockedSubtext}>
+            Subscribe for $19.99/month to unlock all premium movies
+          </Text>
+          
+          <View style={styles.lockedFeatures}>
+            <View style={styles.lockedFeature}>
+              <IconSymbol 
+                ios_icon_name="checkmark.circle.fill" 
+                android_material_icon_name="check_circle" 
+                size={20} 
+                color={colors.primary} 
+              />
+              <Text style={styles.lockedFeatureText}>Unlimited premium movies</Text>
+            </View>
+            <View style={styles.lockedFeature}>
+              <IconSymbol 
+                ios_icon_name="checkmark.circle.fill" 
+                android_material_icon_name="check_circle" 
+                size={20} 
+                color={colors.primary} 
+              />
+              <Text style={styles.lockedFeatureText}>HD quality playback</Text>
+            </View>
+            <View style={styles.lockedFeature}>
+              <IconSymbol 
+                ios_icon_name="checkmark.circle.fill" 
+                android_material_icon_name="check_circle" 
+                size={20} 
+                color={colors.primary} 
+              />
+              <Text style={styles.lockedFeatureText}>No ads, ever</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity 
+            style={styles.subscribeButtonLocked} 
+            onPress={() => {
+              router.back();
+              router.push('/subscription');
+            }}
+          >
+            <IconSymbol 
+              ios_icon_name="star.fill" 
+              android_material_icon_name="star" 
+              size={24} 
+              color={colors.background} 
+            />
+            <Text style={styles.subscribeButtonText}>Subscribe Now - $19.99</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.backButtonLocked} onPress={() => router.back()}>
+            <Text style={styles.backButtonLockedText}>Go Back</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -443,5 +547,65 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: colors.background,
+  },
+  lockedContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  lockedTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: colors.text,
+    textAlign: 'center',
+    marginTop: 24,
+    marginBottom: 12,
+  },
+  lockedSubtext: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 24,
+  },
+  lockedFeatures: {
+    width: '100%',
+    marginBottom: 32,
+  },
+  lockedFeature: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  lockedFeatureText: {
+    fontSize: 16,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  subscribeButtonLocked: {
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  subscribeButtonText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.background,
+  },
+  backButtonLocked: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  backButtonLockedText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
   },
 });
