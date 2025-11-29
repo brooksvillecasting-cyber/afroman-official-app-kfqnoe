@@ -1,27 +1,62 @@
 
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
 const SUBSCRIPTION_PRICE = 19.99;
-const PAYMENT_LINK = 'https://buy.stripe.com/4gw6qg0Aw1Hy5Ow5kk';
+const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/7sYdRb1Nj5xCfSlfKd6Na07';
 
 export default function SubscriptionScreen() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubscribe = async () => {
-    console.log('Opening payment link:', PAYMENT_LINK);
+    console.log('Subscribe button pressed');
+    console.log('Opening Stripe payment link:', STRIPE_PAYMENT_LINK);
+    
+    setIsLoading(true);
+    
     try {
-      const supported = await Linking.canOpenURL(PAYMENT_LINK);
-      if (supported) {
-        await Linking.openURL(PAYMENT_LINK);
-      } else {
-        console.error('Cannot open payment link');
+      // Check if the URL can be opened
+      const canOpen = await Linking.canOpenURL(STRIPE_PAYMENT_LINK);
+      console.log('Can open URL:', canOpen);
+      
+      if (!canOpen) {
+        console.error('Cannot open Stripe payment link');
+        Alert.alert(
+          'Error',
+          'Unable to open payment page. Please check your internet connection and try again.',
+          [{ text: 'OK' }]
+        );
+        setIsLoading(false);
+        return;
       }
+
+      // Open the Stripe payment link
+      await Linking.openURL(STRIPE_PAYMENT_LINK);
+      console.log('Successfully opened Stripe payment link');
+      
+      // Show info to user
+      Alert.alert(
+        'Redirecting to Payment',
+        'You will be redirected back to the app after completing your payment. Once payment is confirmed, you\'ll have full access to all premium content!',
+        [{ text: 'OK' }]
+      );
+      
     } catch (error) {
-      console.error('Error opening payment link:', error);
+      console.error('Error opening Stripe payment link:', error);
+      Alert.alert(
+        'Something Went Wrong',
+        'We couldn\'t open the payment page. Please try again or contact support if the problem persists.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Try Again', onPress: () => handleSubscribe() }
+        ]
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -146,18 +181,25 @@ export default function SubscriptionScreen() {
 
         {/* Subscribe Button */}
         <TouchableOpacity 
-          style={styles.subscribeButton}
+          style={[styles.subscribeButton, isLoading && styles.subscribeButtonDisabled]}
           onPress={handleSubscribe}
+          disabled={isLoading}
         >
-          <IconSymbol 
-            ios_icon_name="creditcard.fill" 
-            android_material_icon_name="payment" 
-            size={24} 
-            color={colors.background} 
-          />
-          <Text style={styles.subscribeButtonText}>
-            Subscribe Now - ${SUBSCRIPTION_PRICE.toFixed(2)}
-          </Text>
+          {isLoading ? (
+            <ActivityIndicator size="small" color={colors.background} />
+          ) : (
+            <>
+              <IconSymbol 
+                ios_icon_name="creditcard.fill" 
+                android_material_icon_name="payment" 
+                size={24} 
+                color={colors.background} 
+              />
+              <Text style={styles.subscribeButtonText}>
+                Subscribe Now - ${SUBSCRIPTION_PRICE.toFixed(2)}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
 
         {/* Secure Payment Notice */}
@@ -304,6 +346,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 12,
+  },
+  subscribeButtonDisabled: {
+    opacity: 0.6,
   },
   subscribeButtonText: {
     fontSize: 20,
