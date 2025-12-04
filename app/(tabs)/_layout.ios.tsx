@@ -1,6 +1,5 @@
 
 import { Tabs } from 'expo-router/unstable-native-tabs';
-import { Platform } from 'react-native';
 import { colors } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 
@@ -14,7 +13,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="(home)"
+        name="index"
         options={{
           title: 'Home',
           tabBarIcon: ({ color, focused }) => (
@@ -28,13 +27,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="watchlist"
+        name="shop"
         options={{
-          title: 'Watchlist',
+          title: 'Shop',
           tabBarIcon: ({ color, focused }) => (
             <IconSymbol
-              ios_icon_name={focused ? 'bookmark.fill' : 'bookmark'}
-              android_material_icon_name={focused ? 'bookmark' : 'bookmark_border'}
+              ios_icon_name={focused ? 'cart.fill' : 'cart'}
+              android_material_icon_name="shopping_cart"
               size={28}
               color={color}
             />
@@ -42,13 +41,27 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="videos"
         options={{
-          title: 'Profile',
+          title: 'Videos',
           tabBarIcon: ({ color, focused }) => (
             <IconSymbol
-              ios_icon_name={focused ? 'person.fill' : 'person'}
-              android_material_icon_name="person"
+              ios_icon_name={focused ? 'play.rectangle.fill' : 'play.rectangle'}
+              android_material_icon_name="play_circle"
+              size={28}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="about"
+        options={{
+          title: 'About',
+          tabBarIcon: ({ color, focused }) => (
+            <IconSymbol
+              ios_icon_name={focused ? 'info.circle.fill' : 'info.circle'}
+              android_material_icon_name="info"
               size={28}
               color={color}
             />

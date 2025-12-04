@@ -1,38 +1,61 @@
 
-import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 export const colors = {
   background: '#000000',      // Black
   text: '#FFFFFF',            // White
   textSecondary: '#A9A9A9',   // Dark Gray
-  primary: '#32CD32',         // Lime Green
-  secondary: '#008000',       // Green
-  accent: '#ADFF2F',          // Green Yellow
-  card: '#121212',            // Dark Gray
-  highlight: '#32CD32',       // Lime Green
+  primary: '#32CD32',         // Money Green (Lime Green)
+  secondary: '#228B22',       // Forest Green
+  accent: '#00FF00',          // Bright Green
+  card: '#1A1A1A',            // Dark Gray Card
+  highlight: '#32CD32',       // Money Green
+  error: '#FF4444',           // Red for errors
+  success: '#32CD32',         // Green for success
 };
 
 export const buttonStyles = StyleSheet.create({
   primaryButton: {
     backgroundColor: colors.primary,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    boxShadow: '0px 4px 12px rgba(50, 205, 50, 0.4)',
+    elevation: 6,
   },
   secondaryButton: {
     backgroundColor: colors.secondary,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0px 4px 12px rgba(34, 139, 34, 0.4)',
+    elevation: 6,
+  },
+  outlineButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   buttonText: {
     color: colors.background,
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  outlineButtonText: {
+    color: colors.primary,
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });
 
@@ -56,17 +79,18 @@ export const commonStyles = StyleSheet.create({
     width: '100%',
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '800',
     textAlign: 'center',
     color: colors.text,
-    marginBottom: 10
+    marginBottom: 12,
+    letterSpacing: 1,
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   text: {
     fontSize: 16,

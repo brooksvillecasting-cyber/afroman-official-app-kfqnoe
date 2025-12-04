@@ -1,22 +1,22 @@
 
 {
   "expo": {
-    "name": "Afroman Official App",
-    "slug": "Afroman Official App",
-    "version": "1.0.1",
+    "name": "Official Afroman App",
+    "slug": "official-afroman-app",
+    "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/1e10f7f3-1517-4585-aaa3-7e62500446bb.jpeg",
+    "icon": "./assets/images/78f09d30-583a-4e97-8a0c-72de573f1869.jpeg",
     "userInterfaceStyle": "automatic",
-    "description": "The official Afroman mobile app - your exclusive destination for premium movies, behind-the-scenes content, and free music videos from Grammy-nominated artist Afroman. Stream the iconic 'Because I Got High' music video for free, or subscribe for $19.99/month to unlock unlimited access to exclusive movies, documentaries, and premium content. Features include HD quality playback with adjustable speed controls, early access to new releases, and an ad-free viewing experience. All music videos remain free to watch. Subscribe through our secure web portal powered by Stripe. Download now to join the Afroman community and enjoy exclusive content you won't find anywhere else!",
+    "description": "The official Afroman mobile app - Shop exclusive merchandise including t-shirts, hoodies, and movies. Watch free music videos including the Grammy-nominated hit 'Because I Got High' and 'Crazy Rap (Colt 45)'. Learn about Grammy-nominated artist Afroman's achievements, biography, and legacy. Features secure Stripe checkout, fast loading, and a sleek money-green and black design. Download now to access official Afroman content!",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/1e10f7f3-1517-4585-aaa3-7e62500446bb.jpeg",
+      "image": "./assets/images/78f09d30-583a-4e97-8a0c-72de573f1869.jpeg",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.Natively",
+      "bundleIdentifier": "com.afroman.officialapp",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSAppTransportSecurity": {
@@ -31,6 +31,11 @@
               "NSExceptionAllowsInsecureHTTPLoads": false,
               "NSIncludesSubdomains": true,
               "NSExceptionRequiresForwardSecrecy": true
+            },
+            "stripe.com": {
+              "NSExceptionAllowsInsecureHTTPLoads": false,
+              "NSIncludesSubdomains": true,
+              "NSExceptionRequiresForwardSecrecy": true
             }
           }
         }
@@ -38,11 +43,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/1e10f7f3-1517-4585-aaa3-7e62500446bb.jpeg",
+        "foregroundImage": "./assets/images/78f09d30-583a-4e97-8a0c-72de573f1869.jpeg",
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.Natively",
+      "package": "com.afroman.officialapp",
       "intentFilters": [
         {
           "action": "VIEW",
@@ -50,11 +55,11 @@
           "data": [
             {
               "scheme": "https",
-              "host": "afromantv.app",
+              "host": "afromanapp.com",
               "pathPrefix": "/payment-success"
             },
             {
-              "scheme": "afromantv"
+              "scheme": "afromanapp"
             }
           ],
           "category": [
@@ -65,7 +70,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/images/1e10f7f3-1517-4585-aaa3-7e62500446bb.jpeg",
+      "favicon": "./assets/images/78f09d30-583a-4e97-8a0c-72de573f1869.jpeg",
       "bundler": "metro"
     },
     "plugins": [
@@ -73,13 +78,12 @@
       "expo-router",
       "expo-web-browser"
     ],
-    "scheme": "afromantv",
+    "scheme": "afromanapp",
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
       "router": {}
     }
-  },
-  "scheme": "Afroman Official App"
+  }
 }
