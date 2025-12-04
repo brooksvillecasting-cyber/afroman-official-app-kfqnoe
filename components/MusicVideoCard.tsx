@@ -1,10 +1,11 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MusicVideo } from '@/types/Movie';
 import { colors } from '@/styles/commonStyles';
 import { IconSymbol } from './IconSymbol';
+import { useWatchlist } from '@/hooks/useWatchlist';
 
 interface MusicVideoCardProps {
   video: MusicVideo;
@@ -25,6 +26,8 @@ const getYouTubeThumbnail = (youtubeId: string, quality: 'default' | 'hq' | 'mq'
 
 export const MusicVideoCard: React.FC<MusicVideoCardProps> = ({ video }) => {
   const router = useRouter();
+  const { isInWatchlist, toggleWatchlist } = useWatchlist();
+  const inWatchlist = isInWatchlist(video.id);
 
   const handlePress = () => {
     console.log('Opening YouTube video:', video.youtubeId);
@@ -32,6 +35,20 @@ export const MusicVideoCard: React.FC<MusicVideoCardProps> = ({ video }) => {
       pathname: '/youtube-player',
       params: { videoId: video.youtubeId },
     });
+  };
+
+  const handleWatchlistToggle = async (e: any) => {
+    e.stopPropagation();
+    const success = await toggleWatchlist(video.id, 'music_video');
+    if (success) {
+      Alert.alert(
+        inWatchlist ? 'Removed from Watchlist' : 'Added to Watchlist',
+        inWatchlist 
+          ? `${video.title} has been removed from your watchlist.`
+          : `${video.title} has been added to your watchlist.`,
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   // Get official YouTube thumbnail
@@ -55,6 +72,17 @@ export const MusicVideoCard: React.FC<MusicVideoCardProps> = ({ video }) => {
           color="rgba(255, 255, 255, 0.9)" 
         />
       </View>
+      <TouchableOpacity 
+        style={styles.watchlistButton}
+        onPress={handleWatchlistToggle}
+      >
+        <IconSymbol 
+          ios_icon_name={inWatchlist ? "bookmark.fill" : "bookmark"}
+          android_material_icon_name={inWatchlist ? "bookmark" : "bookmark_border"}
+          size={24} 
+          color={inWatchlist ? colors.accent : colors.text} 
+        />
+      </TouchableOpacity>
       <View style={styles.content}>
         <Text style={styles.title} numberOfLines={2}>{video.title}</Text>
         <Text style={styles.artist} numberOfLines={1}>{video.artist}</Text>
@@ -117,6 +145,17 @@ const styles = StyleSheet.create({
     top: '50%',
     left: '50%',
     transform: [{ translateX: -32 }, { translateY: -82 }],
+  },
+  watchlistButton: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    backgroundColor: colors.card,
+    padding: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    zIndex: 10,
   },
   content: {
     padding: 16,

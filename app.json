@@ -1,12 +1,13 @@
 
 {
   "expo": {
-    "name": "Afroman TV",
-    "slug": "Afroman TV",
-    "version": "1.0.0",
+    "name": "Afroman Official App",
+    "slug": "Afroman Official App",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/1e10f7f3-1517-4585-aaa3-7e62500446bb.jpeg",
     "userInterfaceStyle": "automatic",
+    "description": "The official Afroman mobile app - your exclusive destination for premium movies, behind-the-scenes content, and free music videos from Grammy-nominated artist Afroman. Stream the iconic 'Because I Got High' music video for free, or subscribe for $19.99/month to unlock unlimited access to exclusive movies, documentaries, and premium content. Features include HD quality playback with adjustable speed controls, early access to new releases, and an ad-free viewing experience. All music videos remain free to watch. Subscribe through our secure web portal powered by Stripe. Download now to join the Afroman community and enjoy exclusive content you won't find anywhere else!",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/1e10f7f3-1517-4585-aaa3-7e62500446bb.jpeg",
@@ -17,7 +18,22 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.Natively",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false,
+          "NSExceptionDomains": {
+            "youtube.com": {
+              "NSExceptionAllowsInsecureHTTPLoads": false,
+              "NSIncludesSubdomains": true,
+              "NSExceptionRequiresForwardSecrecy": true
+            },
+            "ytimg.com": {
+              "NSExceptionAllowsInsecureHTTPLoads": false,
+              "NSIncludesSubdomains": true,
+              "NSExceptionRequiresForwardSecrecy": true
+            }
+          }
+        }
       }
     },
     "android": {
@@ -64,5 +80,6 @@
     "extra": {
       "router": {}
     }
-  }
+  },
+  "scheme": "Afroman Official App"
 }

@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Linking } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Linking, Alert, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import { colors, commonStyles } from '@/styles/commonStyles';
@@ -14,8 +14,13 @@ export default function YouTubePlayerScreen() {
   const params = useLocalSearchParams();
   const { musicVideos } = useMovies();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const webViewRef = useRef<any>(null);
 
   console.log('YouTube Player - Received videoId:', params.videoId);
+  console.log('YouTube Player - Platform:', Platform.OS);
+  console.log('YouTube Player - Device:', Platform.isPad ? 'iPad' : 'iPhone/Android');
 
   // Find video by youtubeId (not by id)
   const video = musicVideos.find(v => v.youtubeId === params.videoId);
@@ -44,19 +49,81 @@ export default function YouTubePlayerScreen() {
     );
   }
 
-  const youtubeEmbedUrl = `https://www.youtube.com/embed/${video.youtubeId}?autoplay=1&rel=0&modestbranding=1`;
+  // Enhanced YouTube embed URL with better compatibility settings
+  const youtubeEmbedUrl = `https://www.youtube.com/embed/${video.youtubeId}?autoplay=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=https://afromantv.app`;
   const youtubeAppUrl = `https://www.youtube.com/watch?v=${video.youtubeId}`;
+  const youtubeWebUrl = `https://m.youtube.com/watch?v=${video.youtubeId}`;
 
   const handleOpenInYouTube = async () => {
     try {
-      const supported = await Linking.canOpenURL(youtubeAppUrl);
-      if (supported) {
-        await Linking.openURL(youtubeAppUrl);
+      console.log('Attempting to open YouTube video:', video.youtubeId);
+      
+      // Try YouTube app first
+      const youtubeAppSupported = await Linking.canOpenURL(`youtube://${video.youtubeId}`);
+      
+      if (youtubeAppSupported) {
+        console.log('Opening in YouTube app');
+        await Linking.openURL(`youtube://${video.youtubeId}`);
       } else {
-        console.log('Cannot open YouTube URL');
+        console.log('Opening in browser');
+        await Linking.openURL(youtubeWebUrl);
       }
     } catch (error) {
-      console.log('Error opening YouTube:', error);
+      console.error('Error opening YouTube:', error);
+      Alert.alert(
+        'Unable to Open',
+        'Could not open YouTube. Please ensure you have the YouTube app installed or try again later.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const handleWebViewError = (syntheticEvent: any) => {
+    const { nativeEvent } = syntheticEvent;
+    console.error('WebView error:', nativeEvent);
+    console.error('Error code:', nativeEvent.code);
+    console.error('Error description:', nativeEvent.description);
+    
+    setError(true);
+    setLoading(false);
+    
+    // Show user-friendly error message
+    Alert.alert(
+      'Video Loading Error',
+      'Unable to load the video player. Would you like to watch this video on YouTube instead?',
+      [
+        { 
+          text: 'Go Back', 
+          style: 'cancel',
+          onPress: () => router.back()
+        },
+        { 
+          text: 'Open YouTube', 
+          onPress: handleOpenInYouTube
+        },
+      ]
+    );
+  };
+
+  const handleRetry = () => {
+    console.log('Retrying video load, attempt:', retryCount + 1);
+    setError(false);
+    setLoading(true);
+    setRetryCount(retryCount + 1);
+    
+    // Force reload the WebView
+    if (webViewRef.current) {
+      webViewRef.current.reload();
+    }
+  };
+
+  const handleHttpError = (syntheticEvent: any) => {
+    const { nativeEvent } = syntheticEvent;
+    console.warn('HTTP error:', nativeEvent.statusCode, nativeEvent.description);
+    
+    if (nativeEvent.statusCode >= 400) {
+      setError(true);
+      setLoading(false);
     }
   };
 
@@ -64,24 +131,72 @@ export default function YouTubePlayerScreen() {
     <View style={[commonStyles.container, styles.container]}>
       {/* Video Player */}
       <View style={styles.videoContainer}>
-        <WebView
-          source={{ uri: youtubeEmbedUrl }}
-          style={styles.webview}
-          allowsFullscreenVideo
-          allowsInlineMediaPlayback
-          mediaPlaybackRequiresUserAction={false}
-          javaScriptEnabled
-          domStorageEnabled
-          onLoadStart={() => setLoading(true)}
-          onLoadEnd={() => setLoading(false)}
-          onError={(syntheticEvent) => {
-            const { nativeEvent } = syntheticEvent;
-            console.log('WebView error:', nativeEvent);
-          }}
-        />
-        {loading && (
-          <View style={styles.loadingOverlay}>
-            <Text style={styles.loadingText}>Loading video...</Text>
+        {!error ? (
+          <>
+            <WebView
+              ref={webViewRef}
+              source={{ uri: youtubeEmbedUrl }}
+              style={styles.webview}
+              allowsFullscreenVideo
+              allowsInlineMediaPlayback
+              mediaPlaybackRequiresUserAction={false}
+              javaScriptEnabled
+              domStorageEnabled
+              startInLoadingState
+              onLoadStart={() => {
+                console.log('WebView load started');
+                setLoading(true);
+              }}
+              onLoadEnd={() => {
+                console.log('WebView load ended');
+                setLoading(false);
+              }}
+              onError={handleWebViewError}
+              onHttpError={handleHttpError}
+              onLoadProgress={({ nativeEvent }) => {
+                console.log('Load progress:', nativeEvent.progress);
+              }}
+              // Enhanced error recovery
+              onShouldStartLoadWithRequest={(request) => {
+                console.log('Loading request:', request.url);
+                return true;
+              }}
+              // iOS specific settings for better compatibility
+              {...(Platform.OS === 'ios' && {
+                allowsLinkPreview: false,
+                dataDetectorTypes: 'none',
+              })}
+            />
+            {loading && (
+              <View style={styles.loadingOverlay}>
+                <IconSymbol 
+                  ios_icon_name="arrow.clockwise" 
+                  android_material_icon_name="refresh" 
+                  size={32} 
+                  color={colors.primary} 
+                />
+                <Text style={styles.loadingText}>Loading video player...</Text>
+              </View>
+            )}
+          </>
+        ) : (
+          <View style={styles.errorOverlay}>
+            <IconSymbol 
+              ios_icon_name="exclamationmark.triangle.fill" 
+              android_material_icon_name="error" 
+              size={48} 
+              color={colors.accent} 
+            />
+            <Text style={styles.errorOverlayText}>Unable to load video player</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+              <IconSymbol 
+                ios_icon_name="arrow.clockwise" 
+                android_material_icon_name="refresh" 
+                size={20} 
+                color={colors.background} 
+              />
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -157,8 +272,19 @@ export default function YouTubePlayerScreen() {
             size={24} 
             color="#FF0000" 
           />
-          <Text style={styles.youtubeButtonText}>Watch on YouTube</Text>
+          <Text style={styles.youtubeButtonText}>Watch on YouTube App</Text>
         </TouchableOpacity>
+
+        {/* Troubleshooting Section */}
+        <View style={styles.troubleshootingBox}>
+          <Text style={styles.troubleshootingTitle}>Having trouble playing the video?</Text>
+          <Text style={styles.troubleshootingText}>
+            - Ensure you have a stable internet connection{'\n'}
+            - Try opening the video in the YouTube app{'\n'}
+            - Check if YouTube is accessible in your region{'\n'}
+            - Restart the app and try again
+          </Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -184,10 +310,41 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 12,
   },
   loadingText: {
     color: colors.textSecondary,
     fontSize: 16,
+    fontWeight: '600',
+  },
+  errorOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+    padding: 24,
+  },
+  errorOverlayText: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  retryButtonText: {
+    color: colors.background,
+    fontSize: 16,
+    fontWeight: '700',
   },
   infoContainer: {
     flex: 1,
@@ -286,11 +443,30 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderColor: '#FF0000',
+    marginBottom: 20,
   },
   youtubeButtonText: {
     fontSize: 16,
     fontWeight: '700',
     color: colors.text,
+  },
+  troubleshootingBox: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.textSecondary,
+  },
+  troubleshootingTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  troubleshootingText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 20,
   },
   errorContainer: {
     flex: 1,

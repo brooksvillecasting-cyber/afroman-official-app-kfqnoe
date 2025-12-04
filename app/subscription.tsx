@@ -38,10 +38,10 @@ export default function SubscriptionScreen() {
       await Linking.openURL(STRIPE_PAYMENT_LINK);
       console.log('Successfully opened Stripe payment link');
       
-      // Show info to user
+      // Show info to user about external payment
       Alert.alert(
-        'Redirecting to Payment',
-        'You will be redirected back to the app after completing your payment. Once payment is confirmed, you\'ll have full access to all premium content!',
+        'External Payment Portal',
+        'You are being redirected to our secure payment portal powered by Stripe. After completing your payment, you will be automatically redirected back to the app with full premium access. Your payment information is securely processed by Stripe and never stored in the app.',
         [{ text: 'OK' }]
       );
       
@@ -86,7 +86,23 @@ export default function SubscriptionScreen() {
             color={colors.accent} 
           />
           <Text style={styles.title}>Go Premium</Text>
-          <Text style={styles.subtitle}>Unlock all movies - Music videos stay free!</Text>
+          <Text style={styles.subtitle}>Unlock exclusive movies and content</Text>
+        </View>
+
+        {/* Payment Notice */}
+        <View style={styles.paymentNotice}>
+          <IconSymbol 
+            ios_icon_name="info.circle.fill" 
+            android_material_icon_name="info" 
+            size={24} 
+            color={colors.primary} 
+          />
+          <View style={styles.paymentNoticeContent}>
+            <Text style={styles.paymentNoticeTitle}>External Payment Portal</Text>
+            <Text style={styles.paymentNoticeText}>
+              Subscriptions are managed through our secure web portal. You&apos;ll be redirected to complete your payment and then returned to the app automatically.
+            </Text>
+          </View>
         </View>
 
         {/* Pricing Card */}
@@ -100,7 +116,7 @@ export default function SubscriptionScreen() {
 
         {/* Features */}
         <View style={styles.featuresContainer}>
-          <Text style={styles.featuresTitle}>What&apos;s Included:</Text>
+          <Text style={styles.featuresTitle}>Premium Features:</Text>
           
           <View style={styles.feature}>
             <IconSymbol 
@@ -110,6 +126,16 @@ export default function SubscriptionScreen() {
               color={colors.primary} 
             />
             <Text style={styles.featureText}>Unlimited streaming of all premium movies</Text>
+          </View>
+
+          <View style={styles.feature}>
+            <IconSymbol 
+              ios_icon_name="checkmark.circle.fill" 
+              android_material_icon_name="check_circle" 
+              size={24} 
+              color={colors.primary} 
+            />
+            <Text style={styles.featureText}>Exclusive documentaries and behind-the-scenes content</Text>
           </View>
 
           <View style={styles.feature}>
@@ -129,7 +155,7 @@ export default function SubscriptionScreen() {
               size={24} 
               color={colors.primary} 
             />
-            <Text style={styles.featureText}>HD quality playback with speed control</Text>
+            <Text style={styles.featureText}>HD quality playback with adjustable speed control</Text>
           </View>
 
           <View style={styles.feature}>
@@ -139,7 +165,7 @@ export default function SubscriptionScreen() {
               size={24} 
               color={colors.primary} 
             />
-            <Text style={styles.featureText}>Exclusive behind-the-scenes content</Text>
+            <Text style={styles.featureText}>Offline viewing capability (coming soon)</Text>
           </View>
 
           <View style={styles.feature}>
@@ -149,7 +175,7 @@ export default function SubscriptionScreen() {
               size={24} 
               color={colors.primary} 
             />
-            <Text style={styles.featureText}>No ads, ever</Text>
+            <Text style={styles.featureText}>Ad-free experience</Text>
           </View>
 
           <View style={styles.feature}>
@@ -159,7 +185,7 @@ export default function SubscriptionScreen() {
               size={24} 
               color={colors.primary} 
             />
-            <Text style={styles.featureText}>Cancel anytime</Text>
+            <Text style={styles.featureText}>Cancel anytime through web portal</Text>
           </View>
         </View>
 
@@ -172,9 +198,9 @@ export default function SubscriptionScreen() {
             color={colors.accent} 
           />
           <View style={styles.freeNoticeContent}>
-            <Text style={styles.freeNoticeTitle}>Music Videos Are Free!</Text>
+            <Text style={styles.freeNoticeTitle}>Music Videos Stay Free!</Text>
             <Text style={styles.freeNoticeText}>
-              All music videos remain free to watch. Only movies require a subscription.
+              All music videos, including the Grammy-nominated &quot;Because I Got High,&quot; remain completely free to watch. Only movies require a subscription.
             </Text>
           </View>
         </View>
@@ -190,13 +216,13 @@ export default function SubscriptionScreen() {
           ) : (
             <>
               <IconSymbol 
-                ios_icon_name="creditcard.fill" 
-                android_material_icon_name="payment" 
+                ios_icon_name="arrow.up.right.square.fill" 
+                android_material_icon_name="open_in_new" 
                 size={24} 
                 color={colors.background} 
               />
               <Text style={styles.subscribeButtonText}>
-                Subscribe Now - ${SUBSCRIPTION_PRICE.toFixed(2)}
+                Continue to Payment Portal
               </Text>
             </>
           )}
@@ -218,9 +244,21 @@ export default function SubscriptionScreen() {
         {/* Terms */}
         <Text style={styles.terms}>
           By subscribing, you agree to our Terms of Service and Privacy Policy. 
-          Subscription automatically renews monthly unless cancelled. 
-          Your payment information is securely processed by Stripe.
+          Subscription automatically renews monthly unless cancelled through the web portal. 
+          Your payment information is securely processed by Stripe and never stored in this app. 
+          Subscriptions are managed externally through our web portal at buy.stripe.com.
         </Text>
+
+        {/* Additional Info */}
+        <View style={styles.additionalInfo}>
+          <Text style={styles.additionalInfoTitle}>How It Works:</Text>
+          <Text style={styles.additionalInfoText}>
+            1. Tap &quot;Continue to Payment Portal&quot; above{'\n'}
+            2. Complete your payment securely on Stripe{'\n'}
+            3. You&apos;ll be automatically redirected back to the app{'\n'}
+            4. Enjoy instant access to all premium content!
+          </Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -250,7 +288,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   title: {
     fontSize: 36,
@@ -263,6 +301,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  paymentNotice: {
+    flexDirection: 'row',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  paymentNoticeContent: {
+    flex: 1,
+  },
+  paymentNoticeTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.primary,
+    marginBottom: 6,
+  },
+  paymentNoticeText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
   },
   pricingCard: {
     backgroundColor: colors.card,
@@ -372,5 +434,24 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
+    marginBottom: 24,
+  },
+  additionalInfo: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.textSecondary,
+  },
+  additionalInfoTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 12,
+  },
+  additionalInfoText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 22,
   },
 });

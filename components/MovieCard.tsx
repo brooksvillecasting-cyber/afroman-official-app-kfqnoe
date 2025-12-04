@@ -1,10 +1,11 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Movie } from '@/types/Movie';
 import { colors } from '@/styles/commonStyles';
 import { IconSymbol } from './IconSymbol';
+import { useWatchlist } from '@/hooks/useWatchlist';
 
 interface MovieCardProps {
   movie: Movie;
@@ -12,12 +13,28 @@ interface MovieCardProps {
 
 export const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
   const router = useRouter();
+  const { isInWatchlist, toggleWatchlist } = useWatchlist();
+  const inWatchlist = isInWatchlist(movie.id);
 
   const handlePress = () => {
     router.push({
       pathname: '/movie-player',
       params: { movieId: movie.id },
     });
+  };
+
+  const handleWatchlistToggle = async (e: any) => {
+    e.stopPropagation();
+    const success = await toggleWatchlist(movie.id, 'movie');
+    if (success) {
+      Alert.alert(
+        inWatchlist ? 'Removed from Watchlist' : 'Added to Watchlist',
+        inWatchlist 
+          ? `${movie.title} has been removed from your watchlist.`
+          : `${movie.title} has been added to your watchlist.`,
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   return (
@@ -39,6 +56,17 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
           <Text style={styles.premiumBadgeText}>PREMIUM</Text>
         </View>
       )}
+      <TouchableOpacity 
+        style={styles.watchlistButton}
+        onPress={handleWatchlistToggle}
+      >
+        <IconSymbol 
+          ios_icon_name={inWatchlist ? "bookmark.fill" : "bookmark"}
+          android_material_icon_name={inWatchlist ? "bookmark" : "bookmark_border"}
+          size={24} 
+          color={inWatchlist ? colors.accent : colors.text} 
+        />
+      </TouchableOpacity>
       <View style={styles.content}>
         <Text style={styles.title} numberOfLines={2}>{movie.title}</Text>
         <Text style={styles.description} numberOfLines={3}>{movie.description}</Text>
@@ -110,6 +138,17 @@ const styles = StyleSheet.create({
     color: colors.background,
     fontSize: 11,
     fontWeight: '800',
+  },
+  watchlistButton: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    backgroundColor: colors.card,
+    padding: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    zIndex: 10,
   },
   content: {
     padding: 16,
