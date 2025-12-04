@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -16,13 +16,29 @@ export default function ProductDetailScreen() {
   const product = PRODUCTS.find(p => p.id === id);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
 
+  useEffect(() => {
+    console.log('ProductDetailScreen mounted for product:', id);
+    if (product) {
+      console.log('Product found:', product.name);
+      console.log('Stripe URL:', product.stripeUrl);
+    } else {
+      console.log('Product not found for id:', id);
+    }
+    return () => {
+      console.log('ProductDetailScreen unmounted');
+    };
+  }, [id, product]);
+
   if (!product) {
     return (
       <View style={[commonStyles.container, styles.container]}>
         <View style={styles.header}>
           <TouchableOpacity 
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => {
+              console.log('Back button pressed');
+              router.back();
+            }}
           >
             <IconSymbol 
               ios_icon_name="chevron.left" 
@@ -50,38 +66,53 @@ export default function ProductDetailScreen() {
   };
 
   const handleAddToCart = () => {
-    if (product.category === 'clothing' && !selectedSize) {
-      Alert.alert('Select Size', 'Please select a size before adding to cart');
-      return;
-    }
+    try {
+      console.log('Add to cart button pressed');
+      if (product.category === 'clothing' && !selectedSize) {
+        console.log('No size selected for clothing item');
+        Alert.alert('Select Size', 'Please select a size before adding to cart');
+        return;
+      }
 
-    addToCart(product, selectedSize);
-    console.log('Added to cart:', product.name, selectedSize);
-    
-    Alert.alert(
-      'Added to Cart',
-      `${product.name}${selectedSize ? ` (${selectedSize})` : ''} has been added to your cart`,
-      [
-        {
-          text: 'Continue Shopping',
-          style: 'cancel',
-        },
-        {
-          text: 'View Cart',
-          onPress: () => router.push('/cart'),
-        },
-      ]
-    );
+      addToCart(product, selectedSize);
+      console.log('Added to cart successfully:', product.name, selectedSize);
+      
+      Alert.alert(
+        'Added to Cart',
+        `${product.name}${selectedSize ? ` (${selectedSize})` : ''} has been added to your cart`,
+        [
+          {
+            text: 'Continue Shopping',
+            style: 'cancel',
+            onPress: () => console.log('Continue shopping pressed'),
+          },
+          {
+            text: 'View Cart',
+            onPress: () => {
+              console.log('View cart pressed');
+              router.push('/cart');
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.log('Error in handleAddToCart:', error);
+      Alert.alert('Error', 'Could not add item to cart. Please try again.');
+    }
   };
 
   const handleBuyNow = async () => {
-    if (product.category === 'clothing' && !selectedSize) {
-      Alert.alert('Select Size', 'Please select a size before purchasing');
-      return;
-    }
-
     try {
+      console.log('Buy now button pressed');
+      if (product.category === 'clothing' && !selectedSize) {
+        console.log('No size selected for clothing item');
+        Alert.alert('Select Size', 'Please select a size before purchasing');
+        return;
+      }
+
       console.log('Opening Stripe checkout for:', product.name);
+      console.log('Stripe URL:', product.stripeUrl);
+      
       const result = await WebBrowser.openBrowserAsync(product.stripeUrl);
       console.log('Stripe checkout result:', result);
       
@@ -90,7 +121,7 @@ export default function ProductDetailScreen() {
         Alert.alert(
           'Digital Purchase',
           'After completing your payment, you will receive access to stream this content. Please check your email for access instructions.',
-          [{ text: 'OK' }]
+          [{ text: 'OK', onPress: () => console.log('Digital purchase alert dismissed') }]
         );
       }
     } catch (error) {
@@ -105,7 +136,10 @@ export default function ProductDetailScreen() {
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => {
+            console.log('Back button pressed');
+            router.back();
+          }}
         >
           <IconSymbol 
             ios_icon_name="chevron.left" 

@@ -5,15 +5,23 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Linking from 'expo-linking';
 import { CartProvider } from '@/contexts/CartContext';
+import { Platform } from 'react-native';
 
 // Prevent the splash screen from auto-hiding
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch((error) => {
+  console.log('Error preventing splash screen auto-hide:', error);
+});
 
 export default function RootLayout() {
   useEffect(() => {
+    console.log('RootLayout mounted');
+    console.log('Platform:', Platform.OS);
+    
     // Hide splash screen after 2 seconds
-    setTimeout(() => {
-      SplashScreen.hideAsync();
+    const timer = setTimeout(() => {
+      SplashScreen.hideAsync().catch((error) => {
+        console.log('Error hiding splash screen:', error);
+      });
     }, 2000);
 
     // Handle deep linking
@@ -27,10 +35,14 @@ export default function RootLayout() {
       if (url) {
         console.log('App opened with URL:', url);
       }
+    }).catch((error) => {
+      console.log('Error getting initial URL:', error);
     });
 
     return () => {
+      clearTimeout(timer);
       subscription.remove();
+      console.log('RootLayout unmounted');
     };
   }, []);
 

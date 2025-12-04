@@ -5,7 +5,7 @@ export interface Product {
   description: string;
   price: number;
   imageUrl: string;
-  category: 'clothing' | 'physical';
+  category: 'clothing' | 'movie' | 'physical';
   sizes?: string[];
   stripeUrl: string;
 }
@@ -23,5 +23,4 @@ export interface MusicVideo {
   youtubeId: string;
   thumbnail: string;
   description: string;
-  channelName: string;
 }

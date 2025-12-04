@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -11,12 +11,25 @@ export default function CartScreen() {
   const router = useRouter();
   const { cart, removeFromCart, clearCart, getCartTotal } = useCart();
 
+  useEffect(() => {
+    console.log('CartScreen mounted');
+    console.log('Cart items:', cart.length);
+    return () => {
+      console.log('CartScreen unmounted');
+    };
+  }, []);
+
   const handleRemoveItem = (productId: string, size?: string) => {
+    console.log('Remove item button pressed:', productId, size);
     Alert.alert(
       'Remove Item',
       'Are you sure you want to remove this item from your cart?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Cancel', 
+          style: 'cancel',
+          onPress: () => console.log('Remove cancelled'),
+        },
         {
           text: 'Remove',
           style: 'destructive',
@@ -30,37 +43,46 @@ export default function CartScreen() {
   };
 
   const handleCheckout = async () => {
-    if (cart.length === 0) {
-      Alert.alert('Empty Cart', 'Your cart is empty. Add some items first!');
-      return;
-    }
+    try {
+      console.log('Checkout button pressed');
+      if (cart.length === 0) {
+        console.log('Cart is empty');
+        Alert.alert('Empty Cart', 'Your cart is empty. Add some items first!');
+        return;
+      }
 
-    if (cart.length === 1) {
-      // Single item - go directly to Stripe
-      try {
-        console.log('Opening Stripe checkout for:', cart[0].product.name);
+      if (cart.length === 1) {
+        // Single item - go directly to Stripe
+        console.log('Single item checkout');
+        console.log('Opening Stripe URL:', cart[0].product.stripeUrl);
         const result = await WebBrowser.openBrowserAsync(cart[0].product.stripeUrl);
         console.log('Stripe checkout result:', result);
-      } catch (error) {
-        console.log('Error opening Stripe checkout:', error);
-        Alert.alert('Error', 'Could not open checkout. Please try again.');
+      } else {
+        // Multiple items - show message
+        console.log('Multiple items in cart');
+        Alert.alert(
+          'Checkout',
+          'Please checkout each item individually by tapping "Buy Now" on each item. This ensures secure payment processing for each purchase.',
+          [{ text: 'OK', onPress: () => console.log('Multiple items alert dismissed') }]
+        );
       }
-    } else {
-      // Multiple items - show message
-      Alert.alert(
-        'Checkout',
-        'Please checkout each item individually by tapping "Buy Now" on each item. This ensures secure payment processing for each purchase.',
-        [{ text: 'OK' }]
-      );
+    } catch (error) {
+      console.log('Error in handleCheckout:', error);
+      Alert.alert('Error', 'Could not open checkout. Please try again.');
     }
   };
 
   const handleClearCart = () => {
+    console.log('Clear cart button pressed');
     Alert.alert(
       'Clear Cart',
       'Are you sure you want to remove all items from your cart?',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Cancel', 
+          style: 'cancel',
+          onPress: () => console.log('Clear cart cancelled'),
+        },
         {
           text: 'Clear',
           style: 'destructive',
@@ -75,7 +97,8 @@ export default function CartScreen() {
 
   const handleBuyNow = async (item: any) => {
     try {
-      console.log('Opening Stripe checkout for:', item.product.name);
+      console.log('Buy now button pressed for item:', item.product.name);
+      console.log('Opening Stripe URL:', item.product.stripeUrl);
       const result = await WebBrowser.openBrowserAsync(item.product.stripeUrl);
       console.log('Stripe checkout result:', result);
       
@@ -84,7 +107,7 @@ export default function CartScreen() {
         Alert.alert(
           'Digital Purchase',
           'After completing your payment, you will receive access to stream this content. Please check your email for access instructions.',
-          [{ text: 'OK' }]
+          [{ text: 'OK', onPress: () => console.log('Digital purchase alert dismissed') }]
         );
       }
     } catch (error) {
@@ -99,7 +122,10 @@ export default function CartScreen() {
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => {
+            console.log('Back button pressed');
+            router.back();
+          }}
         >
           <IconSymbol 
             ios_icon_name="chevron.left" 
@@ -129,7 +155,10 @@ export default function CartScreen() {
           <Text style={styles.emptyText}>Add some items to get started!</Text>
           <TouchableOpacity
             style={buttonStyles.primaryButton}
-            onPress={() => router.push('/shop')}
+            onPress={() => {
+              console.log('Shop now button pressed');
+              router.push('/shop');
+            }}
           >
             <Text style={buttonStyles.buttonText}>Shop Now</Text>
           </TouchableOpacity>
