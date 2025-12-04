@@ -5,7 +5,7 @@ export interface Product {
   description: string;
   price: number;
   imageUrl: string;
-  category: 'clothing' | 'movie';
+  category: 'clothing' | 'physical';
   sizes?: string[];
   stripeUrl: string;
 }
@@ -15,4 +15,13 @@ export interface CartItem {
   size?: string;
   quantity: number;
   finalPrice: number;
+}
+
+export interface MusicVideo {
+  id: string;
+  title: string;
+  youtubeId: string;
+  thumbnail: string;
+  description: string;
+  channelName: string;
 }

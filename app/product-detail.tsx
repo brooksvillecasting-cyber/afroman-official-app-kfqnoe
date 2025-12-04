@@ -19,7 +19,24 @@ export default function ProductDetailScreen() {
   if (!product) {
     return (
       <View style={[commonStyles.container, styles.container]}>
-        <Text style={styles.errorText}>Product not found</Text>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <IconSymbol 
+              ios_icon_name="chevron.left" 
+              android_material_icon_name="arrow_back" 
+              size={28} 
+              color={colors.primary} 
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Product Details</Text>
+          <View style={{ width: 28 }} />
+        </View>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Product not found</Text>
+        </View>
       </View>
     );
   }
@@ -39,6 +56,8 @@ export default function ProductDetailScreen() {
     }
 
     addToCart(product, selectedSize);
+    console.log('Added to cart:', product.name, selectedSize);
+    
     Alert.alert(
       'Added to Cart',
       `${product.name}${selectedSize ? ` (${selectedSize})` : ''} has been added to your cart`,
@@ -62,7 +81,18 @@ export default function ProductDetailScreen() {
     }
 
     try {
-      await WebBrowser.openBrowserAsync(product.stripeUrl);
+      console.log('Opening Stripe checkout for:', product.name);
+      const result = await WebBrowser.openBrowserAsync(product.stripeUrl);
+      console.log('Stripe checkout result:', result);
+      
+      // Show info about digital content
+      if (product.category === 'movie') {
+        Alert.alert(
+          'Digital Purchase',
+          'After completing your payment, you will receive access to stream this content. Please check your email for access instructions.',
+          [{ text: 'OK' }]
+        );
+      }
     } catch (error) {
       console.log('Error opening Stripe checkout:', error);
       Alert.alert('Error', 'Could not open checkout. Please try again.');
@@ -102,7 +132,21 @@ export default function ProductDetailScreen() {
 
         {/* Product Info */}
         <View style={styles.infoSection}>
-          <Text style={styles.productName}>{product.name}</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.productName}>{product.name}</Text>
+            {product.category === 'movie' && (
+              <View style={styles.digitalBadge}>
+                <IconSymbol 
+                  ios_icon_name="cloud.fill" 
+                  android_material_icon_name="cloud" 
+                  size={16} 
+                  color={colors.primary} 
+                />
+                <Text style={styles.digitalBadgeText}>Digital</Text>
+              </View>
+            )}
+          </View>
+          
           <Text style={styles.productPrice}>${calculatePrice().toFixed(2)}</Text>
           {(selectedSize === '4X' || selectedSize === '5X') && (
             <Text style={styles.priceNote}>+$2.00 for {selectedSize} size</Text>
@@ -115,13 +159,16 @@ export default function ProductDetailScreen() {
               <Text style={styles.sizeTitle}>Select Size:</Text>
               <View style={styles.sizeGrid}>
                 {product.sizes.map((size, index) => (
-                  <React.Fragment key={size}>
+                  <React.Fragment key={`${size}-${index}`}>
                     <TouchableOpacity
                       style={[
                         styles.sizeButton,
                         selectedSize === size && styles.sizeButtonSelected,
                       ]}
-                      onPress={() => setSelectedSize(size)}
+                      onPress={() => {
+                        setSelectedSize(size);
+                        console.log('Size selected:', size);
+                      }}
                     >
                       <Text
                         style={[
@@ -132,7 +179,12 @@ export default function ProductDetailScreen() {
                         {size}
                       </Text>
                       {(size === '4X' || size === '5X') && (
-                        <Text style={styles.sizeExtraText}>+$2</Text>
+                        <Text style={[
+                          styles.sizeExtraText,
+                          selectedSize === size && styles.sizeExtraTextSelected,
+                        ]}>
+                          +$2
+                        </Text>
                       )}
                     </TouchableOpacity>
                   </React.Fragment>
@@ -160,7 +212,13 @@ export default function ProductDetailScreen() {
               style={[buttonStyles.primaryButton, styles.buyNowButton]}
               onPress={handleBuyNow}
             >
-              <Text style={buttonStyles.buttonText}>Buy Now</Text>
+              <IconSymbol 
+                ios_icon_name="lock.fill" 
+                android_material_icon_name="lock" 
+                size={20} 
+                color={colors.background} 
+              />
+              <Text style={[buttonStyles.buttonText, { marginLeft: 8 }]}>Buy Now</Text>
             </TouchableOpacity>
           </View>
 
@@ -175,10 +233,29 @@ export default function ProductDetailScreen() {
             <View style={styles.infoBoxContent}>
               <Text style={styles.infoBoxTitle}>Secure Checkout</Text>
               <Text style={styles.infoBoxText}>
-                All payments are processed securely through Stripe. Your payment information is never stored on our servers.
+                All payments are processed securely through Stripe. Your payment information is never stored on our servers. 
+                {product.category === 'movie' && ' Digital content will be available for streaming after purchase completion.'}
+                {product.category === 'clothing' && ' Physical items will be shipped to your address.'}
               </Text>
             </View>
           </View>
+
+          {product.category === 'movie' && (
+            <View style={styles.digitalInfoBox}>
+              <IconSymbol 
+                ios_icon_name="info.circle.fill" 
+                android_material_icon_name="info" 
+                size={24} 
+                color={colors.primary} 
+              />
+              <View style={styles.infoBoxContent}>
+                <Text style={styles.infoBoxTitle}>Digital Content</Text>
+                <Text style={styles.infoBoxText}>
+                  This is a digital purchase. After completing payment, you will receive access to stream this content. Check your email for access instructions and streaming details.
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -220,11 +297,33 @@ const styles = StyleSheet.create({
   infoSection: {
     padding: 20,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
   productName: {
+    flex: 1,
     fontSize: 28,
     fontWeight: '800',
     color: colors.text,
-    marginBottom: 8,
+  },
+  digitalBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.card,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  digitalBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.primary,
   },
   productPrice: {
     fontSize: 36,
@@ -284,6 +383,10 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
+  sizeExtraTextSelected: {
+    color: colors.background,
+    opacity: 0.8,
+  },
   actionButtons: {
     gap: 12,
     marginBottom: 24,
@@ -293,9 +396,21 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buyNowButton: {
-    // Additional styles if needed
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   infoBox: {
+    flexDirection: 'row',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    marginBottom: 16,
+  },
+  digitalInfoBox: {
     flexDirection: 'row',
     backgroundColor: colors.card,
     borderRadius: 12,
@@ -318,10 +433,15 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 20,
   },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
   errorText: {
     fontSize: 18,
     color: colors.textSecondary,
     textAlign: 'center',
-    marginTop: 40,
   },
 });

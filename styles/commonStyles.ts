@@ -22,6 +22,7 @@ export const buttonStyles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
     boxShadow: '0px 4px 12px rgba(50, 205, 50, 0.4)',
     elevation: 6,
   },
@@ -32,6 +33,7 @@ export const buttonStyles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
     boxShadow: '0px 4px 12px rgba(34, 139, 34, 0.4)',
     elevation: 6,
   },
@@ -44,6 +46,7 @@ export const buttonStyles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
   },
   buttonText: {
     color: colors.background,

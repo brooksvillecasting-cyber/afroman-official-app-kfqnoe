@@ -20,7 +20,10 @@ export default function CartScreen() {
         {
           text: 'Remove',
           style: 'destructive',
-          onPress: () => removeFromCart(productId, size),
+          onPress: () => {
+            removeFromCart(productId, size);
+            console.log('Item removed from cart:', productId, size);
+          },
         },
       ]
     );
@@ -35,7 +38,9 @@ export default function CartScreen() {
     if (cart.length === 1) {
       // Single item - go directly to Stripe
       try {
-        await WebBrowser.openBrowserAsync(cart[0].product.stripeUrl);
+        console.log('Opening Stripe checkout for:', cart[0].product.name);
+        const result = await WebBrowser.openBrowserAsync(cart[0].product.stripeUrl);
+        console.log('Stripe checkout result:', result);
       } catch (error) {
         console.log('Error opening Stripe checkout:', error);
         Alert.alert('Error', 'Could not open checkout. Please try again.');
@@ -44,7 +49,7 @@ export default function CartScreen() {
       // Multiple items - show message
       Alert.alert(
         'Checkout',
-        'Please checkout each item individually by tapping "Buy Now" on each item.',
+        'Please checkout each item individually by tapping "Buy Now" on each item. This ensures secure payment processing for each purchase.',
         [{ text: 'OK' }]
       );
     }
@@ -59,10 +64,33 @@ export default function CartScreen() {
         {
           text: 'Clear',
           style: 'destructive',
-          onPress: () => clearCart(),
+          onPress: () => {
+            clearCart();
+            console.log('Cart cleared');
+          },
         },
       ]
     );
+  };
+
+  const handleBuyNow = async (item: any) => {
+    try {
+      console.log('Opening Stripe checkout for:', item.product.name);
+      const result = await WebBrowser.openBrowserAsync(item.product.stripeUrl);
+      console.log('Stripe checkout result:', result);
+      
+      // Show info about digital content
+      if (item.product.category === 'movie') {
+        Alert.alert(
+          'Digital Purchase',
+          'After completing your payment, you will receive access to stream this content. Please check your email for access instructions.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.log('Error opening Stripe checkout:', error);
+      Alert.alert('Error', 'Could not open checkout. Please try again.');
+    }
   };
 
   return (
@@ -114,7 +142,7 @@ export default function CartScreen() {
             showsVerticalScrollIndicator={false}
           >
             {cart.map((item, index) => (
-              <React.Fragment key={`${item.product.id}-${item.size || 'no-size'}`}>
+              <React.Fragment key={`${item.product.id}-${item.size || 'no-size'}-${index}`}>
                 <View style={styles.cartItem}>
                   <Image 
                     source={{ uri: item.product.imageUrl }}
@@ -123,6 +151,17 @@ export default function CartScreen() {
                   />
                   <View style={styles.itemInfo}>
                     <Text style={styles.itemName}>{item.product.name}</Text>
+                    {item.product.category === 'movie' && (
+                      <View style={styles.digitalBadge}>
+                        <IconSymbol 
+                          ios_icon_name="cloud.fill" 
+                          android_material_icon_name="cloud" 
+                          size={14} 
+                          color={colors.primary} 
+                        />
+                        <Text style={styles.digitalBadgeText}>Digital Content</Text>
+                      </View>
+                    )}
                     {item.size && (
                       <Text style={styles.itemSize}>Size: {item.size}</Text>
                     )}
@@ -147,14 +186,7 @@ export default function CartScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.buyButton}
-                      onPress={async () => {
-                        try {
-                          await WebBrowser.openBrowserAsync(item.product.stripeUrl);
-                        } catch (error) {
-                          console.log('Error opening Stripe checkout:', error);
-                          Alert.alert('Error', 'Could not open checkout. Please try again.');
-                        }
-                      }}
+                      onPress={() => handleBuyNow(item)}
                     >
                       <Text style={styles.buyButtonText}>Buy Now</Text>
                     </TouchableOpacity>
@@ -162,6 +194,21 @@ export default function CartScreen() {
                 </View>
               </React.Fragment>
             ))}
+
+            <View style={styles.infoBox}>
+              <IconSymbol 
+                ios_icon_name="checkmark.shield.fill" 
+                android_material_icon_name="verified_user" 
+                size={24} 
+                color={colors.primary} 
+              />
+              <View style={styles.infoBoxContent}>
+                <Text style={styles.infoBoxTitle}>Secure Checkout</Text>
+                <Text style={styles.infoBoxText}>
+                  All payments are processed securely through Stripe. Physical items will be shipped to your address. Digital content will be available for streaming after purchase.
+                </Text>
+              </View>
+            </View>
           </ScrollView>
 
           {/* Cart Summary */}
@@ -174,13 +221,19 @@ export default function CartScreen() {
               style={buttonStyles.primaryButton}
               onPress={handleCheckout}
             >
-              <Text style={buttonStyles.buttonText}>
+              <IconSymbol 
+                ios_icon_name="lock.fill" 
+                android_material_icon_name="lock" 
+                size={20} 
+                color={colors.background} 
+              />
+              <Text style={[buttonStyles.buttonText, { marginLeft: 8 }]}>
                 {cart.length === 1 ? 'Proceed to Checkout' : 'Checkout Items'}
               </Text>
             </TouchableOpacity>
             <Text style={styles.checkoutNote}>
               {cart.length > 1 
-                ? 'Checkout each item individually' 
+                ? 'Checkout each item individually for secure processing' 
                 : 'Secure checkout with Stripe'}
             </Text>
           </View>
@@ -269,6 +322,22 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 4,
   },
+  digitalBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.background,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+  digitalBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.primary,
+  },
   itemSize: {
     fontSize: 14,
     color: colors.textSecondary,
@@ -301,6 +370,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: colors.background,
+  },
+  infoBox: {
+    flexDirection: 'row',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    marginTop: 8,
+  },
+  infoBoxContent: {
+    flex: 1,
+  },
+  infoBoxTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  infoBoxText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
   },
   summaryContainer: {
     padding: 20,

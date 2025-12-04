@@ -3,11 +3,11 @@
   "expo": {
     "name": "Official Afroman App",
     "slug": "official-afroman-app",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/78f09d30-583a-4e97-8a0c-72de573f1869.jpeg",
     "userInterfaceStyle": "automatic",
-    "description": "The official Afroman mobile app - Shop exclusive merchandise including t-shirts, hoodies, and movies. Watch free music videos including the Grammy-nominated hit 'Because I Got High' and 'Crazy Rap (Colt 45)'. Learn about Grammy-nominated artist Afroman's achievements, biography, and legacy. Features secure Stripe checkout, fast loading, and a sleek money-green and black design. Download now to access official Afroman content!",
+    "description": "The Official Afroman App - Your complete destination for Grammy-nominated artist Afroman. SHOP: Browse and purchase exclusive official merchandise including premium t-shirts (sizes S-5X) and hoodies (sizes S-5X) with secure Stripe checkout. WATCH: Stream free music videos including the Grammy-nominated hit 'Because I Got High' and 'Crazy Rap (Colt 45)' directly from Afroman's official YouTube channel. Purchase and stream the exclusive movie 'Happily Divorced'. DISCOVER: Explore Afroman's biography, achievements including his Grammy nomination, platinum certifications, 500+ million streams, and his lasting impact on hip-hop culture. FEATURES: Fast-loading interface, smooth video playback, shopping cart with size selection and dynamic pricing, secure payment processing, and a sleek money-green and black design. Download now to access official Afroman content, shop exclusive merchandise, and enjoy free music videos!",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/78f09d30-583a-4e97-8a0c-72de573f1869.jpeg",
@@ -25,20 +25,35 @@
             "youtube.com": {
               "NSExceptionAllowsInsecureHTTPLoads": false,
               "NSIncludesSubdomains": true,
-              "NSExceptionRequiresForwardSecrecy": true
+              "NSExceptionRequiresForwardSecrecy": true,
+              "NSExceptionMinimumTLSVersion": "TLSv1.2"
             },
             "ytimg.com": {
               "NSExceptionAllowsInsecureHTTPLoads": false,
               "NSIncludesSubdomains": true,
-              "NSExceptionRequiresForwardSecrecy": true
+              "NSExceptionRequiresForwardSecrecy": true,
+              "NSExceptionMinimumTLSVersion": "TLSv1.2"
+            },
+            "googlevideo.com": {
+              "NSExceptionAllowsInsecureHTTPLoads": false,
+              "NSIncludesSubdomains": true,
+              "NSExceptionRequiresForwardSecrecy": true,
+              "NSExceptionMinimumTLSVersion": "TLSv1.2"
             },
             "stripe.com": {
               "NSExceptionAllowsInsecureHTTPLoads": false,
               "NSIncludesSubdomains": true,
               "NSExceptionRequiresForwardSecrecy": true
+            },
+            "buy.stripe.com": {
+              "NSExceptionAllowsInsecureHTTPLoads": false,
+              "NSIncludesSubdomains": true,
+              "NSExceptionRequiresForwardSecrecy": true
             }
           }
-        }
+        },
+        "CFBundleAllowMixedLocalizations": true,
+        "UIBackgroundModes": ["audio"]
       }
     },
     "android": {
@@ -48,6 +63,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.afroman.officialapp",
+      "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"],
       "intentFilters": [
         {
           "action": "VIEW",
@@ -76,7 +92,14 @@
     "plugins": [
       "expo-font",
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": [],
+          "enableGooglePay": false
+        }
+      ]
     ],
     "scheme": "afromanapp",
     "experiments": {

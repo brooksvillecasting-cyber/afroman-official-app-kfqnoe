@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
@@ -43,7 +43,7 @@ export default function ShopScreen() {
         <Text style={styles.subtitle}>Official Afroman Merchandise</Text>
 
         {PRODUCTS.map((product, index) => (
-          <React.Fragment key={product.id}>
+          <React.Fragment key={`${product.id}-${index}`}>
             <TouchableOpacity
               style={styles.productCard}
               onPress={() => router.push(`/product-detail?id=${product.id}`)}
@@ -54,7 +54,20 @@ export default function ShopScreen() {
                 resizeMode="cover"
               />
               <View style={styles.productInfo}>
-                <Text style={styles.productName}>{product.name}</Text>
+                <View style={styles.productHeader}>
+                  <Text style={styles.productName}>{product.name}</Text>
+                  {product.category === 'movie' && (
+                    <View style={styles.digitalBadge}>
+                      <IconSymbol 
+                        ios_icon_name="cloud.fill" 
+                        android_material_icon_name="cloud" 
+                        size={12} 
+                        color={colors.primary} 
+                      />
+                      <Text style={styles.digitalBadgeText}>Digital</Text>
+                    </View>
+                  )}
+                </View>
                 <Text style={styles.productDescription} numberOfLines={2}>
                   {product.description}
                 </Text>
@@ -83,7 +96,7 @@ export default function ShopScreen() {
             color={colors.primary} 
           />
           <Text style={styles.infoText}>
-            All purchases are processed securely through Stripe. You&apos;ll be redirected to complete your payment.
+            All purchases are processed securely through Stripe. Physical items will be shipped to your address. Digital content will be available for streaming after purchase.
           </Text>
         </View>
       </ScrollView>
@@ -163,11 +176,33 @@ const styles = StyleSheet.create({
   productInfo: {
     padding: 16,
   },
+  productHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
   productName: {
+    flex: 1,
     fontSize: 22,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 8,
+  },
+  digitalBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.background,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  digitalBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.primary,
   },
   productDescription: {
     fontSize: 14,
